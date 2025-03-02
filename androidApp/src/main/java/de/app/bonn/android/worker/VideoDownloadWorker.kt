@@ -12,7 +12,7 @@ import java.net.URL
 
 class VideoDownloadWorker(context: Context, workerParams: WorkerParameters): Worker(context, workerParams) {
     override fun doWork(): Result {
-        val videoUrl = "https://videos.pexels.com/video-files/9669111/9669111-hd_1080_1920_25fps.mp4"
+        val videoUrl = "https://videos.pexels.com/video-files/6507533/6507533-hd_1080_1920_25fps.mp4"
         val file = File(applicationContext.getExternalFilesDir(null), "live_wallpaper.mp4")
 
         return try {

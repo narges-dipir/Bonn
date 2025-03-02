@@ -31,4 +31,9 @@ class WallpaperForegroundService: Service() {
             .build()
     }
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopForeground(STOP_FOREGROUND_REMOVE)  // Remove foreground notification when destroyed
+    }
 }
