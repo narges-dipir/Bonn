@@ -3,10 +3,14 @@ package de.app.bonn.android.service
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.service.wallpaper.WallpaperService
+import android.util.Log
 import android.view.SurfaceHolder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -18,9 +22,31 @@ import de.app.bonn.android.forgroundService.WallpaperForegroundService
 import java.io.File
 
 class VideoLiveWallpaperService: WallpaperService() {
+    private var videoEngine: VideoEngine? = null
+
     override fun onCreateEngine(): Engine {
-        return VideoEngine()
+        videoEngine = VideoEngine()
+        return videoEngine!!
     }
+    private val wallpaperUpdateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "UPDATE_LIVE_WALLPAPER") {
+                Log.d("WallpaperService", "Updating live wallpaper video...")
+                videoEngine?.updateVideo()
+            }
+        }
+
+    }
+    override fun onCreate() {
+        super.onCreate()
+        val filter = IntentFilter("UPDATE_LIVE_WALLPAPER")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(wallpaperUpdateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(wallpaperUpdateReceiver, filter)
+        }
+    }
+
     private inner class VideoEngine : Engine() {
         private var exoPlayer: ExoPlayer? = null
         private lateinit var surfaceHolder: SurfaceHolder
@@ -29,6 +55,9 @@ class VideoLiveWallpaperService: WallpaperService() {
             super.onSurfaceCreated(holder)
             surfaceHolder = holder
             startForegroundService()
+            playVideo()
+        }
+        fun updateVideo() {
             playVideo()
         }
 
@@ -49,15 +78,13 @@ class VideoLiveWallpaperService: WallpaperService() {
             val notification = createNotification()
             val notificationManager = getSystemService(NotificationManager::class.java)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(
-                    "wallpaper_service", "Wallpaper Service",
-                    NotificationManager.IMPORTANCE_LOW
-                )
-                notificationManager.createNotificationChannel(channel)
-            }
+            val channel = NotificationChannel(
+                "wallpaper_service", "Wallpaper Service",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager.createNotificationChannel(channel)
 
-            startForeground(1, notification)  // Start foreground service when wallpaper starts
+            startForeground(1, notification)
         }
 
         private fun createNotification(): Notification {
@@ -68,9 +95,9 @@ class VideoLiveWallpaperService: WallpaperService() {
                 .build()
         }
 
+
         override fun onDestroy() {
             exoPlayer?.release()
-            stopForeground(true)
             super.onDestroy()
         }
     }

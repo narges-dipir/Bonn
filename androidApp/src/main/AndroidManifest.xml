@@ -37,5 +37,15 @@
                 android:resource="@xml/livewallpaper" />
         </service>
 
+        <receiver
+            android:name=".service.WallpaperUpdateReceiver"
+            android:exported="false"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="UPDATE_LIVE_WALLPAPER"/>
+            </intent-filter>
+        </receiver>
+
+
     </application>
 </manifest> 

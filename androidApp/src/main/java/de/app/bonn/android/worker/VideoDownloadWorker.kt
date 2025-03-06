@@ -21,7 +21,8 @@ class VideoDownloadWorker(context: Context, workerParams: WorkerParameters): Wor
 
         return try {
             downloadFile(videoUrl, file)
-            restartWallpaperService(applicationContext)
+            // restartWallpaperService(applicationContext)
+            notifyWallpaperService(applicationContext)
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -50,6 +51,10 @@ class VideoDownloadWorker(context: Context, workerParams: WorkerParameters): Wor
         val serviceIntent = Intent(context, VideoLiveWallpaperService::class.java)
         context.stopService(serviceIntent)
         context.startForegroundService(serviceIntent)
+    }
+    private fun notifyWallpaperService(context: Context) {
+        val intent = Intent("UPDATE_LIVE_WALLPAPER")
+        context.sendBroadcast(intent)
     }
     companion object {
        fun initiate(context: Context, videoUrl: String) {

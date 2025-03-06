@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
                 ComponentName(this@MainActivity, VideoLiveWallpaperService::class.java)
             )
         }
-        this.startActivity(intent)
+       startActivity(intent)
 
         setContent {
             MyApplicationTheme {
