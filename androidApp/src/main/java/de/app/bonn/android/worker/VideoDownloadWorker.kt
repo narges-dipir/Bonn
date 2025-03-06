@@ -1,10 +1,14 @@
 package de.app.bonn.android.worker
 
 import android.content.Context
+import android.content.Intent
 import androidx.work.OneTimeWorkRequest
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
+import de.app.bonn.android.service.VideoLiveWallpaperService
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
@@ -12,11 +16,12 @@ import java.net.URL
 
 class VideoDownloadWorker(context: Context, workerParams: WorkerParameters): Worker(context, workerParams) {
     override fun doWork(): Result {
-        val videoUrl = "https://videos.pexels.com/video-files/6507533/6507533-hd_1080_1920_25fps.mp4"
+        val videoUrl = inputData.getString("video_url") ?: return Result.failure()
         val file = File(applicationContext.getExternalFilesDir(null), "live_wallpaper.mp4")
 
         return try {
             downloadFile(videoUrl, file)
+            restartWallpaperService(applicationContext)
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -41,9 +46,16 @@ class VideoDownloadWorker(context: Context, workerParams: WorkerParameters): Wor
         outputStream.close()
         inputStream.close()
     }
+    private fun restartWallpaperService(context: Context) {
+        val serviceIntent = Intent(context, VideoLiveWallpaperService::class.java)
+        context.stopService(serviceIntent)
+        context.startForegroundService(serviceIntent)
+    }
     companion object {
-       fun initiate(context: Context) {
-           val workRequest = OneTimeWorkRequest.Builder(VideoDownloadWorker::class.java).build()
+       fun initiate(context: Context, videoUrl: String) {
+           val workRequest = OneTimeWorkRequestBuilder<VideoDownloadWorker>()
+               .setInputData(workDataOf("video_url" to videoUrl))
+               .build()
            WorkManager.getInstance(context).enqueue(workRequest)
        }
     }

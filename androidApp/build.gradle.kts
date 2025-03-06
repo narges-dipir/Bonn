@@ -9,7 +9,7 @@ android {
     compileSdk = 35
     defaultConfig {
         applicationId = "de.app.bonn.android"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -45,5 +45,6 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.work.runtime.ktx)
     debugImplementation(libs.compose.ui.tooling)
-
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging.ktx)
 }
