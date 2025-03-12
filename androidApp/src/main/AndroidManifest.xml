@@ -37,6 +37,14 @@
                 android:resource="@xml/livewallpaper" />
         </service>
 
+        <service
+            android:name=".firebase.WallpaperFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".service.WallpaperUpdateReceiver"
             android:exported="false"
