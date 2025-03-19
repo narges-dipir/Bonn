@@ -2,6 +2,7 @@ package de.app.bonn.android.worker
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -31,6 +32,7 @@ class VideoDownloadWorker(context: Context, workerParams: WorkerParameters): Wor
     }
 
     private fun downloadFile(url: String, outputFile: File) {
+        Log.i("url", url)
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.requestMethod = "GET"
         connection.connect()
