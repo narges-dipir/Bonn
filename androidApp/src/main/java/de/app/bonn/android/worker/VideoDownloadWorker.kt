@@ -10,6 +10,7 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import de.app.bonn.android.service.VideoLiveWallpaperService
+import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
@@ -20,19 +21,16 @@ class VideoDownloadWorker(context: Context, workerParams: WorkerParameters): Wor
         val videoUrl = inputData.getString("video_url") ?: return Result.failure()
         val file = File(applicationContext.getExternalFilesDir(null), "live_wallpaper.mp4")
 
-        return try {
-            downloadFile(videoUrl, file)
-            // restartWallpaperService(applicationContext)
-            notifyWallpaperService(applicationContext)
+        return if (downloadFile(videoUrl, file)) {
             Result.success()
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } else {
             Result.retry()
         }
     }
 
-    private fun downloadFile(url: String, outputFile: File) {
-        Log.i("url", url)
+
+    private fun downloadFile(url: String, outputFile: File): Boolean {
+        Timber.i("url", url)
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.requestMethod = "GET"
         connection.connect()
@@ -48,11 +46,8 @@ class VideoDownloadWorker(context: Context, workerParams: WorkerParameters): Wor
 
         outputStream.close()
         inputStream.close()
-    }
-    private fun restartWallpaperService(context: Context) {
-        val serviceIntent = Intent(context, VideoLiveWallpaperService::class.java)
-        context.stopService(serviceIntent)
-        context.startForegroundService(serviceIntent)
+        notifyWallpaperService(applicationContext)
+        return true
     }
     private fun notifyWallpaperService(context: Context) {
         val intent = Intent("UPDATE_LIVE_WALLPAPER")

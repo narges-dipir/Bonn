@@ -4,9 +4,12 @@ import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import de.app.bonn.android.worker.VideoDownloadWorker
+import timber.log.Timber
 
 class WallpaperFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
+        Timber.i("Message received: $message")
+        println("Message received: ${message.data}")
         message.data["video_url"]?.let { videoUrl ->
             VideoDownloadWorker.initiate(this, videoUrl)
         }

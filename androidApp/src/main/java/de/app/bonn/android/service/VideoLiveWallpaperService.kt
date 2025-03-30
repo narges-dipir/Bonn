@@ -1,5 +1,6 @@
 package de.app.bonn.android.service
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -17,6 +18,7 @@ import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.google.firebase.FirebaseApp
 import de.app.bonn.android.R
 import de.app.bonn.android.forgroundService.WallpaperForegroundService
 import java.io.File
@@ -37,6 +39,7 @@ class VideoLiveWallpaperService: WallpaperService() {
         }
 
     }
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onCreate() {
         super.onCreate()
         val filter = IntentFilter("UPDATE_LIVE_WALLPAPER")

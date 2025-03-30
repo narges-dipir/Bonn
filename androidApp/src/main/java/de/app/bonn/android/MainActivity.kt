@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat
 import de.app.bonn.Greeting
 import de.app.bonn.android.service.VideoLiveWallpaperService
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.FirebaseApp
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import de.app.bonn.android.worker.VideoDownloadWorker
 
@@ -37,7 +39,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FirebaseApp.initializeApp(this)
+       // FirebaseApp.initializeApp(this)
+//        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+//            if (task.isSuccessful) {
+//                val token = task.result
+//                Log.d("FCM", "Token: $token")
+//            } else {
+//                Log.w("FCM", "Fetching FCM token failed", task.exception)
+//            }
+//        }
+
         VideoDownloadWorker.initiate(this, "https://videos.pexels.com/video-files/5829168/5829168-uhd_2160_3840_24fps.mp4")
         val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
             putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,

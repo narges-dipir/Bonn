@@ -19,10 +19,8 @@ class WallpaperForegroundService: Service() {
         val channelId = "wallpaper_service"
         val channelName = "Wallpaper Service"
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
-            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
+        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
 
         return NotificationCompat.Builder(this, channelId)
             .setContentTitle("Live Wallpaper Running")

@@ -1,6 +1,16 @@
-package de.app.bonn.android;
+package de.app.bonn.android
 
-import android.app.Application;
+import android.app.Application
+import android.util.Log
+import com.google.firebase.FirebaseApp
 
-public class App extends Application {
+class App : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+//        if (FirebaseApp.getApps(this.applicationContext).isEmpty()) {
+//            FirebaseApp.initializeApp(this.applicationContext)
+//            Log.d("Firebase", "Firebase initialized")
+//        }
+    }
 }
