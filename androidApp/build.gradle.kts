@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.google.hilt)
+    alias(libs.plugins.kapt)
 }
 
 android {
@@ -48,7 +50,9 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging.ktx)
-    implementation(platform(libs.firebase.bom.v3270)) // Use Firebase BOM
     implementation(libs.google.firebase.messaging.ktx) // FCM
-
+    implementation(libs.firebase.analytics)
+    implementation(libs.timber)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
 }
