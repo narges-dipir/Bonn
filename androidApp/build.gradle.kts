@@ -29,6 +29,11 @@ android {
         getByName("release") {
             isMinifyEnabled = false
         }
+        getByName("debug") {
+            isDebuggable = true
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -47,6 +52,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.common)
     debugImplementation(libs.compose.ui.tooling)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging.ktx)
