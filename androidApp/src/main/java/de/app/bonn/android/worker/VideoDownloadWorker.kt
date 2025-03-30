@@ -21,6 +21,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import de.app.bonn.android.R
 import de.app.bonn.android.download.VideoDownloader
+import de.app.bonn.android.firebase.NotificationHelper
 import de.app.bonn.android.service.VideoLiveWallpaperService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,29 +35,40 @@ import java.net.URL
 class VideoDownloadWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
-    private val videoDownloader: VideoDownloader
+    private val videoDownloader: VideoDownloader,
+    private val notificationHelper: NotificationHelper
 ) : CoroutineWorker(context, workerParams) {
 
-    private val notificationId = 1001
-    private val channelId = "video_download_channel"
 
     override suspend fun doWork(): Result {
         val videoUrl = inputData.getString("video_url") ?: return Result.failure()
         val file = File(applicationContext.getExternalFilesDir(null), "live_wallpaper.mp4")
 
-        createNotificationChannel()
-
-        setForeground(createForegroundInfo(0))
+        notificationHelper.ensureDownloadChannel()
+        setForeground(
+            ForegroundInfo(
+                notificationHelper.notificationId,
+                notificationHelper.buildDownloadNotification(0),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        )
 
         val success = videoDownloader.downloadVideo(videoUrl, file) { progress ->
-            updateProgressNotification(progress)
+            notificationHelper.notify(
+                notificationHelper.notificationId,
+                notificationHelper.buildDownloadNotification(progress)
+            )
         }
+
         if (success) {
             notifyWallpaperService(applicationContext)
+            notificationHelper.notify(
+                notificationHelper.notificationId,
+                notificationHelper.buildDownloadCompleteNotification()
+            )
             return Result.success()
-        } else {
-            Result.retry()
         }
+
         return Result.retry()
     }
 
@@ -67,45 +79,6 @@ class VideoDownloadWorker @AssistedInject constructor(
         context.sendBroadcast(intent)
     }
 
-    private fun createForegroundInfo(progress: Int): ForegroundInfo {
-        val notification = NotificationCompat.Builder(applicationContext, channelId)
-            .setContentTitle("Downloading video")
-            .setContentText("Progress: $progress%")
-            .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setProgress(100, progress, false)
-            .setOngoing(true)
-            .build()
-
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(notificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(notificationId, notification)
-        }
-    }
-
-    private fun createNotificationChannel() {
-        val name = "Video Download"
-        val importance = NotificationManager.IMPORTANCE_LOW
-        val channel = NotificationChannel(channelId, name, importance)
-        val manager = applicationContext.getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(channel)
-    }
-
-    private fun updateProgressNotification(progress: Int) {
-        val notification = NotificationCompat.Builder(applicationContext, channelId)
-            .setContentTitle("Downloading video")
-            .setContentText("Progress: $progress%")
-            .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setProgress(100, progress, false)
-            .setOngoing(true)
-            .build()
-
-        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(notificationId, notification)
-        if (progress >= 100) {
-            notificationManager.cancel(notificationId)
-        }
-    }
     companion object {
         fun initiate(context: Context, videoUrl: String) {
             val workRequest = OneTimeWorkRequestBuilder<VideoDownloadWorker>()

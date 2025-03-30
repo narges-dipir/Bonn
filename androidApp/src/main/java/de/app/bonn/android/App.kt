@@ -2,9 +2,13 @@ package de.app.bonn.android
 
 import android.app.Application
 import android.util.Log
+import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
-class App : Application() {
+@HiltAndroidApp
+class App(override val workManagerConfiguration: Configuration) : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
@@ -13,4 +17,5 @@ class App : Application() {
 //            Log.d("Firebase", "Firebase initialized")
 //        }
     }
+
 }
