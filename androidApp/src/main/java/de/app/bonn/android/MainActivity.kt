@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
 //            }
 //        }
 
-        VideoDownloadWorker.initiate(this, "https://videos.pexels.com/video-files/5829168/5829168-uhd_2160_3840_24fps.mp4")
+        VideoDownloadWorker.initiate(this, "https://videos.pexels.com/video-files/5829168/5829168-uhd_2160_3840_24fps.mp4", "initial_video")
         val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
             putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
                 ComponentName(this@MainActivity, VideoLiveWallpaperService::class.java)

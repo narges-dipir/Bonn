@@ -42,7 +42,8 @@ class VideoDownloadWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val videoUrl = inputData.getString("video_url") ?: return Result.failure()
-        val file = File(applicationContext.getExternalFilesDir(null), "live_wallpaper.mp4")
+        val videoName = inputData.getString("video_name") ?: return Result.failure()
+        val file = File(applicationContext.getExternalFilesDir(null), "$videoName.mp4")
 
         notificationHelper.ensureDownloadChannel()
         setForeground(
@@ -80,9 +81,10 @@ class VideoDownloadWorker @AssistedInject constructor(
     }
 
     companion object {
-        fun initiate(context: Context, videoUrl: String) {
+        fun initiate(context: Context, videoUrl: String, video_name: String) {
             val workRequest = OneTimeWorkRequestBuilder<VideoDownloadWorker>()
                 .setInputData(workDataOf("video_url" to videoUrl))
+                .setInputData(workDataOf("video_name" to video_name))
                 .build()
             WorkManager.getInstance(context).enqueue(workRequest)
         }
