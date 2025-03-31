@@ -45,32 +45,38 @@ class VideoDownloadWorker @AssistedInject constructor(
         val videoName = inputData.getString("video_name") ?: return Result.failure()
         val file = File(applicationContext.getExternalFilesDir(null), "$videoName.mp4")
 
-        notificationHelper.ensureDownloadChannel()
-        setForeground(
-            ForegroundInfo(
-                notificationHelper.notificationId,
-                notificationHelper.buildDownloadNotification(0),
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-            )
-        )
+        if (!file.exists()) {
 
-        val success = videoDownloader.downloadVideo(videoUrl, file) { progress ->
-            notificationHelper.notify(
-                notificationHelper.notificationId,
-                notificationHelper.buildDownloadNotification(progress)
+            notificationHelper.ensureDownloadChannel()
+            setForeground(
+                ForegroundInfo(
+                    notificationHelper.notificationId,
+                    notificationHelper.buildDownloadNotification(0),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                )
             )
-        }
 
-        if (success) {
+            val success = videoDownloader.downloadVideo(videoUrl, file) { progress ->
+                notificationHelper.notify(
+                    notificationHelper.notificationId,
+                    notificationHelper.buildDownloadNotification(progress)
+                )
+            }
+
+            if (success) {
+                notifyWallpaperService(applicationContext)
+                notificationHelper.notify(
+                    notificationHelper.notificationId,
+                    notificationHelper.buildDownloadCompleteNotification()
+                )
+                return Result.success()
+            }
+
+            return Result.retry()
+        } else {
             notifyWallpaperService(applicationContext)
-            notificationHelper.notify(
-                notificationHelper.notificationId,
-                notificationHelper.buildDownloadCompleteNotification()
-            )
             return Result.success()
         }
-
-        return Result.retry()
     }
 
     private fun notifyWallpaperService(context: Context) {
@@ -86,7 +92,9 @@ class VideoDownloadWorker @AssistedInject constructor(
                 .setInputData(workDataOf("video_url" to videoUrl))
                 .setInputData(workDataOf("video_name" to video_name))
                 .build()
-            WorkManager.getInstance(context).enqueue(workRequest)
+            WorkManager.getInstance(context).enqueueUniqueWork("VideoDownloadWorker",
+                androidx.work.ExistingWorkPolicy.REPLACE,
+                workRequest)
         }
     }
 }
