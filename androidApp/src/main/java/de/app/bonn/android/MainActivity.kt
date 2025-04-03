@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.app.WallpaperManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -34,6 +35,8 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import de.app.bonn.android.worker.VideoDownloadWorker
+import java.io.File
+import java.io.FileOutputStream
 
 class MainActivity : ComponentActivity() {
 
@@ -184,6 +187,7 @@ class MainActivity : ComponentActivity() {
             }
         )
     }
+
 
 
 }

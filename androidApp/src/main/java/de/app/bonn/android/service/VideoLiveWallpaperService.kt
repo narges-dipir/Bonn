@@ -23,7 +23,7 @@ import java.io.File
 class VideoLiveWallpaperService: WallpaperService() {
     private var videoEngine: VideoEngine? = null
     private lateinit var exoPlayer: ExoPlayer
-    private var videoName = ""
+    private var videoName = "starter"
     override fun onCreateEngine(): Engine {
         exoPlayer = ExoPlayer.Builder(applicationContext).build()
         videoEngine = VideoEngine()

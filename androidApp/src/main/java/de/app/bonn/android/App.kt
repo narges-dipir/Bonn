@@ -1,21 +1,42 @@
 package de.app.bonn.android
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
 import dagger.hilt.android.HiltAndroidApp
+import timber.log.Timber
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltAndroidApp
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-
+        copyVideoToExternalFiles(this, "starter")
 //        if (FirebaseApp.getApps(this.applicationContext).isEmpty()) {
 //            FirebaseApp.initializeApp(this.applicationContext)
 //            Log.d("Firebase", "Firebase initialized")
 //        }
     }
+
+    private fun copyVideoToExternalFiles(context: Context, videoName: String) {
+        val destFile = File(context.getExternalFilesDir(null), "$videoName.mp4")
+        if (destFile.exists()) return
+
+        try {
+            context.assets.open("$videoName.mp4").use { input ->
+                FileOutputStream(destFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+        } catch (e: IOException) {
+            Timber.tag("VideoCopy").e("Failed to copy video from assets: ${e.message}")
+        }
+    }
+
 
 }
