@@ -38,11 +38,11 @@ class VideoDownloadWorker @AssistedInject constructor(
     private val videoDownloader: VideoDownloader,
     private val notificationHelper: NotificationHelper
 ) : CoroutineWorker(context, workerParams) {
-
+    private var videoName: String? = ""
 
     override suspend fun doWork(): Result {
         val videoUrl = inputData.getString("video_url") ?: return Result.failure()
-        val videoName = inputData.getString("video_name") ?: return Result.failure()
+        videoName = inputData.getString("video_name") ?: return Result.failure()
         val file = File(applicationContext.getExternalFilesDir(null), "$videoName.mp4")
 
         if (!file.exists()) {
@@ -83,6 +83,7 @@ class VideoDownloadWorker @AssistedInject constructor(
         val intent = Intent("UPDATE_LIVE_WALLPAPER").setPackage(
             "de.app.bonn.android"
         )
+        intent.putExtra("video_name", videoName)
         context.sendBroadcast(intent)
     }
 

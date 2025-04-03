@@ -11,29 +11,29 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.service.wallpaper.WallpaperService
-import android.util.Log
 import android.view.SurfaceHolder
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.google.firebase.FirebaseApp
 import de.app.bonn.android.R
-import de.app.bonn.android.forgroundService.WallpaperForegroundService
+import timber.log.Timber
 import java.io.File
 
 class VideoLiveWallpaperService: WallpaperService() {
     private var videoEngine: VideoEngine? = null
-
+    private lateinit var exoPlayer: ExoPlayer
+    private var videoName = ""
     override fun onCreateEngine(): Engine {
+        exoPlayer = ExoPlayer.Builder(applicationContext).build()
         videoEngine = VideoEngine()
         return videoEngine!!
     }
     private val wallpaperUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "UPDATE_LIVE_WALLPAPER") {
-                Log.d("WallpaperService", "Updating live wallpaper video...")
+                videoName = intent.getStringExtra("videoName") ?: ""
+                Timber.tag("WallpaperService").d("Updating live wallpaper video...")
                 videoEngine?.updateVideo()
             }
         }
@@ -43,6 +43,7 @@ class VideoLiveWallpaperService: WallpaperService() {
     override fun onCreate() {
         super.onCreate()
         val filter = IntentFilter("UPDATE_LIVE_WALLPAPER")
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(wallpaperUpdateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
@@ -51,24 +52,22 @@ class VideoLiveWallpaperService: WallpaperService() {
     }
 
     private inner class VideoEngine : Engine() {
-        private var exoPlayer: ExoPlayer? = null
         private lateinit var surfaceHolder: SurfaceHolder
-
         override fun onSurfaceCreated(holder: SurfaceHolder) {
             super.onSurfaceCreated(holder)
             surfaceHolder = holder
             startForegroundService()
-            playVideo()
+            playVideo(videoName)
         }
         fun updateVideo() {
-            playVideo()
+            playVideo(videoName)
         }
 
-        private fun playVideo() {
-            val file = File(applicationContext.getExternalFilesDir(null), "live_wallpaper.mp4")
+        private fun playVideo(videoName: String) {
+            val file = File(applicationContext.getExternalFilesDir(null), "$videoName.mp4")
             if (!file.exists()) return
 
-            exoPlayer = ExoPlayer.Builder(applicationContext).build().apply {
+            exoPlayer = exoPlayer.apply {
                 setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
                 repeatMode = Player.REPEAT_MODE_ALL
                 playWhenReady = true
