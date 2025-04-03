@@ -8,42 +8,40 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.service.wallpaper.WallpaperService
 import android.view.SurfaceHolder
 import androidx.core.app.NotificationCompat
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
 import de.app.bonn.android.R
 import timber.log.Timber
 import java.io.File
 
-class VideoLiveWallpaperService: WallpaperService() {
+class VideoLiveWallpaperService : WallpaperService() {
+
     private var videoEngine: VideoEngine? = null
-    private lateinit var exoPlayer: ExoPlayer
     private var videoName = "starter"
+
     override fun onCreateEngine(): Engine {
-        exoPlayer = ExoPlayer.Builder(applicationContext).build()
         videoEngine = VideoEngine()
         return videoEngine!!
     }
+
     private val wallpaperUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "UPDATE_LIVE_WALLPAPER") {
-                videoName = intent.getStringExtra("videoName") ?: ""
+                videoName = intent.getStringExtra("videoName") ?: "starter"
                 Timber.tag("WallpaperService").d("Updating live wallpaper video...")
                 videoEngine?.updateVideo()
             }
         }
-
     }
+
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onCreate() {
         super.onCreate()
         val filter = IntentFilter("UPDATE_LIVE_WALLPAPER")
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(wallpaperUpdateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
@@ -52,40 +50,67 @@ class VideoLiveWallpaperService: WallpaperService() {
     }
 
     private inner class VideoEngine : Engine() {
+        private var mediaPlayer: MediaPlayer? = null
         private lateinit var surfaceHolder: SurfaceHolder
+
         override fun onSurfaceCreated(holder: SurfaceHolder) {
             super.onSurfaceCreated(holder)
             surfaceHolder = holder
             startForegroundService()
             playVideo(videoName)
         }
+
+        override fun onVisibilityChanged(visible: Boolean) {
+            super.onVisibilityChanged(visible)
+            if (visible) {
+                mediaPlayer?.start()
+            } else {
+                mediaPlayer?.pause()
+            }
+        }
+
+        override fun onSurfaceDestroyed(holder: SurfaceHolder) {
+            super.onSurfaceDestroyed(holder)
+            mediaPlayer?.pause()
+        }
+
         fun updateVideo() {
+            stopAndReleasePlayer()
             playVideo(videoName)
         }
 
         private fun playVideo(videoName: String) {
             val file = File(applicationContext.getExternalFilesDir(null), "$videoName.mp4")
-            if (!file.exists()) return
-
-            exoPlayer = exoPlayer.apply {
-                setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
-                repeatMode = Player.REPEAT_MODE_ALL
-                playWhenReady = true
-                setVideoSurfaceHolder(surfaceHolder)
-                prepare()
+            if (!file.exists()) {
+                Timber.tag("WallpaperService").e("Video file not found: $videoName.mp4")
+                return
             }
+
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(applicationContext, Uri.fromFile(file))
+                setSurface(surfaceHolder.surface)
+                isLooping = true
+                setOnPreparedListener { it.start() }
+                prepareAsync()
+            }
+        }
+
+        private fun stopAndReleasePlayer() {
+            mediaPlayer?.apply {
+                stop()
+                release()
+            }
+            mediaPlayer = null
         }
 
         private fun startForegroundService() {
             val notification = createNotification()
             val notificationManager = getSystemService(NotificationManager::class.java)
-
             val channel = NotificationChannel(
                 "wallpaper_service", "Wallpaper Service",
                 NotificationManager.IMPORTANCE_HIGH
             )
             notificationManager.createNotificationChannel(channel)
-
             startForeground(1, notification)
         }
 
@@ -97,9 +122,8 @@ class VideoLiveWallpaperService: WallpaperService() {
                 .build()
         }
 
-
         override fun onDestroy() {
-            exoPlayer?.release()
+            stopAndReleasePlayer()
             super.onDestroy()
         }
     }
