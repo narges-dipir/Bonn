@@ -21,7 +21,7 @@ import java.io.File
 class VideoLiveWallpaperService : WallpaperService() {
 
     private var videoEngine: VideoEngine? = null
-    private var videoName = "starter"
+    private var video_name = "starter"
 
     override fun onCreateEngine(): Engine {
         videoEngine = VideoEngine()
@@ -31,7 +31,8 @@ class VideoLiveWallpaperService : WallpaperService() {
     private val wallpaperUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "UPDATE_LIVE_WALLPAPER") {
-                videoName = intent.getStringExtra("videoName") ?: "starter"
+                video_name = intent.getStringExtra("video_name") ?: "starter"
+                Timber.i("Video name updated: $video_name")
                 Timber.tag("WallpaperService").d("Updating live wallpaper video...")
                 videoEngine?.updateVideo()
             }
@@ -57,7 +58,7 @@ class VideoLiveWallpaperService : WallpaperService() {
             super.onSurfaceCreated(holder)
             surfaceHolder = holder
             startForegroundService()
-            playVideo(videoName)
+            playVideo(video_name)
         }
 
         override fun onVisibilityChanged(visible: Boolean) {
@@ -76,7 +77,7 @@ class VideoLiveWallpaperService : WallpaperService() {
 
         fun updateVideo() {
             stopAndReleasePlayer()
-            playVideo(videoName)
+            playVideo(video_name)
         }
 
         private fun playVideo(videoName: String) {

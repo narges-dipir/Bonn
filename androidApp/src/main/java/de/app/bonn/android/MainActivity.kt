@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.app.WallpaperManager
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -31,30 +30,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import com.google.firebase.FirebaseApp
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.FirebaseMessagingService
-import de.app.bonn.android.worker.VideoDownloadWorker
-import java.io.File
-import java.io.FileOutputStream
+import com.google.android.gms.common.GoogleApiAvailability
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-       // FirebaseApp.initializeApp(this)
-//        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-//            if (task.isSuccessful) {
-//                val token = task.result
-//                Log.d("FCM", "Token: $token")
-//            } else {
-//                Log.w("FCM", "Fetching FCM token failed", task.exception)
-//            }
-//        }
 
-        val uri = Uri.parse("android.resource://${this.packageName}/raw/starter")
+        val status = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this)
+        Log.d("FCM", "Google Play Services status: $status")
 
-     //   VideoDownloadWorker.initiate(this, "https://videos.pexels.com/video-files/5829168/5829168-uhd_2160_3840_24fps.mp4", "initial_video")
+
+//        VideoDownloadWorker.initiate(applicationContext, "", "initial_video")
         val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
             putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
                 ComponentName(this@MainActivity, VideoLiveWallpaperService::class.java)
@@ -107,6 +94,7 @@ class MainActivity : ComponentActivity() {
             )
         }
     }
+
 
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)

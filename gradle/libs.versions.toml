@@ -1,7 +1,7 @@
 [versions]
 agp = "8.8.0"
-firebaseBom = "33.10.0"
-firebaseBomVersion = "32.7.0"
+firebaseBom = "33.12.0"
+hiltCompiler = "1.2.0"
 kotlin = "2.0.0"
 compose = "1.5.4"
 compose-material3 = "1.1.2"
@@ -9,15 +9,16 @@ androidx-activityCompose = "1.8.0"
 media3Exoplayer = "1.5.1"
 timber = "5.0.1"
 workRuntimeKtx = "2.10.0"
-hilt = "2.44"
+hilt = "2.52"
 hiltCommon = "1.2.0"
+hiltWork = "1.2.0"
+firebase-messaging = "24.1.1"
 
 [libraries]
+androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltCompiler" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
-firebase-bom-v3270 = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBomVersion" }
-firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx" }
-google-firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx" }
+firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx", version.ref = "firebase-messaging" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
@@ -31,6 +32,7 @@ timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 androidx-hilt-common = { group = "androidx.hilt", name = "hilt-common", version.ref = "hiltCommon" }
+androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

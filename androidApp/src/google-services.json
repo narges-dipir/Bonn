@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "976625758130",
+    "project_id": "bonn-demo",
+    "storage_bucket": "bonn-demo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:976625758130:android:0340baa7820771761e3eab",
+        "android_client_info": {
+          "package_name": "de.app.bonn.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrGU63NTgLxhfa_rDi7tPMe4UPaD-eFlE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

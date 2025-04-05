@@ -11,10 +11,7 @@ import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
-class VideoDownloader @Inject constructor(
-    @ApplicationContext private val context: Context
-) {
+class VideoDownloader {
     suspend fun downloadVideo(
         url: String,
         outputFile: File,
