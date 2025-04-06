@@ -88,11 +88,6 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        if (showAppearOnTopDialog && !showNotificationDialog) {
-            AppearOnTopPermissionDialog(
-                onDismiss = { showAppearOnTopDialog = false }
-            )
-        }
     }
 
 
