@@ -37,10 +37,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val status = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this)
-        Log.d("FCM", "Google Play Services status: $status")
-
-
 //        VideoDownloadWorker.initiate(applicationContext, "", "initial_video")
         val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
             putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
