@@ -23,8 +23,8 @@ class WallpaperForegroundService: Service() {
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
 
         return NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Live Wallpaper Running")
-            .setSmallIcon(R.drawable.directions_run_24)
+            .setContentTitle("Bonn Wallpaper Service")
+            .setSmallIcon(R.mipmap.ic_launcher_round)
             .setOngoing(true)
             .build()
     }

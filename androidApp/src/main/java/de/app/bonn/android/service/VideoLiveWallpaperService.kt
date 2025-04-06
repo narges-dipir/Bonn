@@ -117,8 +117,8 @@ class VideoLiveWallpaperService : WallpaperService() {
 
         private fun createNotification(): Notification {
             return NotificationCompat.Builder(applicationContext, "wallpaper_service")
-                .setContentTitle("Live Video Wallpaper Running")
-                .setSmallIcon(R.drawable.directions_run_24)
+                .setContentTitle("Bonn Is Running")
+                .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setOngoing(true)
                 .build()
         }
