@@ -12,6 +12,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
@@ -178,6 +179,7 @@ class VideoDownloadWorker @AssistedInject constructor(
     companion object {
         fun initiate(context: Context, videoUrl: String, video_name: String) {
             val workRequest = OneTimeWorkRequestBuilder<VideoDownloadWorker>()
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .setInputData(workDataOf("video_url" to videoUrl, "video_name" to video_name))
                 .build()
 
