@@ -1,5 +1,10 @@
 package de.app.bonn.android.screen
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -20,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import de.app.bonn.android.R
 import de.app.bonn.android.material.Background
 import de.app.bonn.android.material.ManropeWght
@@ -32,6 +38,15 @@ fun NotificationPermissionScreen() {
         modifier = Modifier.fillMaxSize()
             .background(Background)
     ) {
+        val permissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                // Permission granted, handle accordingly
+            } else {
+                // Permission denied, handle accordingly
+            }
+        }
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
@@ -69,7 +84,11 @@ fun NotificationPermissionScreen() {
         GreenRoundedButton(
             text = "Turn on notifications",
         ) {
-
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                // Permission is not required for Android versions below 13
+            }
         }
 
     }
