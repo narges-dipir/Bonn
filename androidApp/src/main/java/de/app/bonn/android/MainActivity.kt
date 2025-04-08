@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.app.WallpaperManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -25,19 +26,25 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.common.GoogleApiAvailability
+import de.app.bonn.android.screen.NotificationPermissionScreen
 
 class MainActivity : ComponentActivity() {
-
+private lateinit var navController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-//        VideoDownloadWorker.initiate(applicationContext, "", "initial_video")
         val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
             putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
                 ComponentName(this@MainActivity, VideoLiveWallpaperService::class.java)
@@ -46,18 +53,102 @@ class MainActivity : ComponentActivity() {
        startActivity(intent)
 
         setContent {
-            MyApplicationTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    PermissionRequestFlow()
-                    GreetingView(Greeting().greet())
+           navController = rememberNavController()
+            AppNavGraph(navController)
+            PermissionBasedEntryPoint(navController)
+        }
+    }
 
+    override fun onResume() {
+        super.onResume()
+        if (::navController.isInitialized) {
+            navigateBasedOnPermission(this, navController)
+        }
+    }
+
+    @Composable
+
+    fun PermissionBasedEntryPoint(navController: NavHostController) {
+        val context = LocalContext.current
+        val currentContext by rememberUpdatedState(context)
+
+        LaunchedEffect(Unit) {
+            val destination = if (isNotificationPermissionGranted(currentContext)) {
+                "screen_2"
+            } else {
+                "screen_1"
+            }
+
+            if (navController.currentDestination?.route != destination) {
+                navController.navigate(destination) {
+                    popUpTo(0) // optional: clears stack
+                    launchSingleTop = true
                 }
             }
         }
     }
+
+    fun navigateBasedOnPermission(
+        context: Context,
+        navController: NavHostController
+    ) {
+        val destination = if (isNotificationPermissionGranted(context)) {
+            "screen_2"
+        } else {
+            "screen_1"
+        }
+
+        if (navController.currentDestination?.route != destination) {
+            navController.navigate(destination) {
+                popUpTo(0)
+                launchSingleTop = true
+            }
+        }
+    }
+
+    @Composable
+    fun AppNavGraph(navController: NavHostController) {
+        NavHost(navController = navController, startDestination = "notification_screen") {
+            composable("notification_screen") {
+                NotificationPermissionScreen()
+            }
+            composable("") {
+                // Screen2()
+            }
+        }
+    }
+
+    fun decideNavigation(
+        context: Context,
+        navController: NavController
+    ) {
+        val destination = if (isNotificationPermissionGranted(context)) {
+            "screen_2"
+        } else {
+            "screen_1"
+        }
+
+        // Only navigate if not already on that screen
+        if (navController.currentDestination?.route != destination) {
+            navController.navigate(destination) {
+                popUpTo(0) // Clear back stack if needed
+                launchSingleTop = true
+            }
+        }
+    }
+
+
+    fun isNotificationPermissionGranted(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true // Permission not needed before Android 13
+        }
+    }
+
 
     @Composable
     fun PermissionRequestFlow() {
@@ -166,7 +257,6 @@ class MainActivity : ComponentActivity() {
             }
         )
     }
-
 
 
 }

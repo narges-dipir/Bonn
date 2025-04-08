@@ -15,6 +15,7 @@
 
     <application
         android:name=".App"
+        android:label="Bonn"
         android:allowBackup="true"
         android:supportsRtl="true"
         android:icon="@mipmap/ic_launcher"
