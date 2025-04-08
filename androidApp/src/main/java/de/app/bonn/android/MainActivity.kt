@@ -52,7 +52,6 @@ private lateinit var navController: NavHostController
     }
 
     @Composable
-
     fun PermissionBasedEntryPoint(navController: NavHostController) {
         val context = LocalContext.current
         val currentContext by rememberUpdatedState(context)

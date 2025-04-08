@@ -1,10 +1,15 @@
 package de.app.bonn.android.screen
 
+import android.app.WallpaperManager
+import android.content.ComponentName
+import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import de.app.bonn.android.service.VideoLiveWallpaperService
 
 @Composable
 fun CustomizedWallpaperService() {
@@ -12,10 +17,14 @@ fun CustomizedWallpaperService() {
         modifier = Modifier
             .fillMaxSize()
     ) {
+        val context = LocalContext.current
 
-        Text(text = "Customized Wallpaper Service")
-        // Your UI components for the customized wallpaper service
-        // For example, you can add a Text or Image here) {
+        val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
+            putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
+                ComponentName(context, VideoLiveWallpaperService::class.java)
+            )
+        }
+       context.startActivity(intent)
 
     }
 }
