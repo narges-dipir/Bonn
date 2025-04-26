@@ -70,6 +70,7 @@ private lateinit var navController: NavHostController
                 }
             }
         }
+
     }
 
     fun navigateBasedOnPermission(

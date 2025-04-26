@@ -2,15 +2,37 @@ package de.app.bonn.android.firebase
 
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import dagger.hilt.android.AndroidEntryPoint
+import de.app.bonn.android.network.ApiService
+import de.app.bonn.android.network.TokenRequest
 import de.app.bonn.android.worker.VideoDownloadWorker
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class WallpaperFirebaseMessagingService: FirebaseMessagingService() {
+    @Inject
+    lateinit var apiService: ApiService
+
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Handle the new token as needed
         println("firebase New token: $token")
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = apiService.registerToken(TokenRequest(token))
+                if (response.isSuccessful) {
+                    Timber.i("FCM", "Token registered successfully")
+                } else {
+                    Timber.e("FCM", "Failed to register token: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Timber.e("FCM", "Error sending token", e)
+            }
+        }
     }
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
