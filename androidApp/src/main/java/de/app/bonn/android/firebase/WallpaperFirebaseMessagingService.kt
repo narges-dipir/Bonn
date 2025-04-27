@@ -4,6 +4,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
 import de.app.bonn.android.di.DeviceIdProvider
+import de.app.bonn.android.di.LocalTimeProvider
 import de.app.bonn.android.network.ApiService
 import de.app.bonn.android.network.TokenRequest
 import de.app.bonn.android.worker.VideoDownloadWorker
@@ -21,13 +22,15 @@ class WallpaperFirebaseMessagingService: FirebaseMessagingService() {
     @Inject
     lateinit var deviceIDProvider: DeviceIdProvider
 
+    @Inject
+    lateinit var localTimeProvider: LocalTimeProvider
+
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        println("firebase New token: $token")
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = apiService.registerToken(TokenRequest(token, deviceIDProvider.getDeviceId()))
+                val response = apiService.registerToken(TokenRequest(token, deviceIDProvider.getDeviceId(), localTimeProvider.now()))
                 if (response.isSuccessful) {
                     Timber.i("FCM", "Token registered successfully")
                 } else {
