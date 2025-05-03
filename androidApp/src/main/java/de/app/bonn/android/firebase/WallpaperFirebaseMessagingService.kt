@@ -30,7 +30,7 @@ class WallpaperFirebaseMessagingService: FirebaseMessagingService() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = apiService.registerToken(TokenRequest(token, deviceIDProvider.getDeviceId(), localTimeProvider.now()))
+                val response = apiService.registerToken(TokenRequest(token, deviceIDProvider.getDeviceId(), localTimeProvider.timeZone()))
                 if (response.isSuccessful) {
                     Timber.i("FCM", "Token registered successfully")
                 } else {
