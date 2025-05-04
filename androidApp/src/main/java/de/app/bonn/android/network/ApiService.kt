@@ -1,7 +1,6 @@
 package de.app.bonn.android.network
 
 import de.app.bonn.android.network.data.TokenRequest
-import de.app.bonn.android.network.data.VideoRequest
 import de.app.bonn.android.network.data.responde.VideoResponse
 import retrofit2.Response
 import retrofit2.http.Body
