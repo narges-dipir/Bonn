@@ -6,7 +6,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import de.app.bonn.android.di.DeviceIdProvider
 import de.app.bonn.android.di.LocalTimeProvider
 import de.app.bonn.android.network.ApiService
-import de.app.bonn.android.network.TokenRequest
+import de.app.bonn.android.network.data.TokenRequest
 import de.app.bonn.android.worker.VideoDownloadWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

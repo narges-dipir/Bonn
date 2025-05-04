@@ -1,8 +1,6 @@
 package de.app.bonn.android.screen
 
 import android.Manifest
-import android.app.Activity
-import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -25,15 +23,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import de.app.bonn.android.R
+import de.app.bonn.android.di.DeviceIdProvider
 import de.app.bonn.android.material.Background
 import de.app.bonn.android.material.ManropeWght
 import de.app.bonn.android.material.SchickBlack
+import de.app.bonn.android.network.ApiService
+import de.app.bonn.android.network.data.VideoRequest
 import de.app.bonn.android.widget.GreenRoundedButton
+import kotlinx.coroutines.runBlocking
 
 @Composable
-fun NotificationPermissionScreen() {
+fun NotificationPermissionScreen(
+    apiService: ApiService?,
+    deviceIDProvider: DeviceIdProvider?
+) {
+    val deviceID = deviceIDProvider!!.getDeviceId()
     Column(
         modifier = Modifier.fillMaxSize()
             .background(Background)
@@ -42,9 +47,11 @@ fun NotificationPermissionScreen() {
             contract = ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                // Permission granted, handle accordingly
+                runBlocking {
+                    apiService!!.getLastVideo(deviceId = deviceID)
+                }
             } else {
-                // Permission denied, handle accordingly
+
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
@@ -97,5 +104,5 @@ fun NotificationPermissionScreen() {
 @Preview
 @Composable
 fun PreviewNotificationPermissionScreen() {
-    NotificationPermissionScreen()
+    NotificationPermissionScreen(null, null)
 }

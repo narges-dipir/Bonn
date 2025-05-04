@@ -1,19 +1,14 @@
 package de.app.bonn.android
 
-import android.app.WallpaperManager
-import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import de.app.bonn.android.service.VideoLiveWallpaperService
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
@@ -22,20 +17,25 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
+import de.app.bonn.android.di.DeviceIdProvider
 import de.app.bonn.android.navigation.Screen
+import de.app.bonn.android.network.ApiService
 import de.app.bonn.android.screen.CustomizedWallpaperService
 import de.app.bonn.android.screen.NotificationPermissionScreen
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 private lateinit var navController: NavHostController
+    @Inject
+    lateinit var apiService: ApiService
+
+    @Inject
+    lateinit var deviceIDProvider: DeviceIdProvider
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
-//            putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
-//                ComponentName(this@MainActivity, VideoLiveWallpaperService::class.java)
-//            )
-//        }
-//       startActivity(intent)
 
         setContent {
            navController = rememberNavController()
@@ -95,7 +95,7 @@ private lateinit var navController: NavHostController
     fun AppNavGraph(navController: NavHostController) {
         NavHost(navController = navController, startDestination = "notification_screen") {
             composable(Screen.NotificationScreen.route) {
-                NotificationPermissionScreen()
+                NotificationPermissionScreen(apiService, deviceIDProvider)
             }
             composable(Screen.WallpaperScreen.route) {
                 CustomizedWallpaperService()
@@ -104,7 +104,7 @@ private lateinit var navController: NavHostController
     }
 
 
-    fun isNotificationPermissionGranted(context: Context): Boolean {
+    private fun isNotificationPermissionGranted(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
                     context,
@@ -115,9 +115,6 @@ private lateinit var navController: NavHostController
         }
 
     }
-
-
-
 }
 
 

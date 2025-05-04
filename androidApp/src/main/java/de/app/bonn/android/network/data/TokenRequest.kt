@@ -1,4 +1,4 @@
-package de.app.bonn.android.network
+package de.app.bonn.android.network.data
 
 data class TokenRequest(
     val token: String,
