@@ -13,5 +13,5 @@ interface ApiService {
     suspend fun registerToken(@Body request: TokenRequest): Response<Unit>
 
     @GET("device/last_video")
-    suspend fun getLastVideo(@Query("userId") deviceId: String): Response<VideoResponse>
+    suspend fun getLastVideo(@Query("userId") deviceId: String): Response<Unit>
 }
