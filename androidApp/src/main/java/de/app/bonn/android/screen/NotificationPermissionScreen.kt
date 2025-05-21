@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -30,14 +31,20 @@ import de.app.bonn.android.material.ManropeWght
 import de.app.bonn.android.material.SchickBlack
 import de.app.bonn.android.network.ApiService
 import de.app.bonn.android.network.data.VideoRequest
+import de.app.bonn.android.network.data.responde.VideoResponse
 import de.app.bonn.android.widget.GreenRoundedButton
+import de.app.bonn.android.worker.VideoDownloadWorker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import retrofit2.Response
 
 @Composable
 fun NotificationPermissionScreen(
     apiService: ApiService?,
     deviceIDProvider: DeviceIdProvider?
 ) {
+    val context = LocalContext.current
     val deviceID = deviceIDProvider!!.getDeviceId()
     Column(
         modifier = Modifier.fillMaxSize()
@@ -47,8 +54,16 @@ fun NotificationPermissionScreen(
             contract = ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                runBlocking {
-                    apiService!!.getLastVideo(deviceId = deviceID)
+                var videos : Response<VideoResponse> ?= null
+                runBlocking(Dispatchers.IO) {
+                    val videoTask = async { videos  = apiService!!.getLastVideo(deviceId = deviceID) }
+                    videoTask.await()
+                    videos?.let {
+                        println("Videos: ${it.body()}")
+                        if (videos!!.isSuccessful) {
+                            VideoDownloadWorker.initiate(context, it.body()!!.url, it.body()!!.name)
+                        }
+                    }
                 }
             } else {
 
