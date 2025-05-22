@@ -29,8 +29,7 @@ import de.app.bonn.android.di.DeviceIdProvider
 import de.app.bonn.android.material.Background
 import de.app.bonn.android.material.ManropeWght
 import de.app.bonn.android.material.SchickBlack
-import de.app.bonn.android.network.ApiService
-import de.app.bonn.android.network.data.VideoRequest
+import de.app.bonn.android.network.remote.ApiService
 import de.app.bonn.android.network.data.responde.VideoResponse
 import de.app.bonn.android.widget.GreenRoundedButton
 import de.app.bonn.android.worker.VideoDownloadWorker

@@ -20,7 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import de.app.bonn.android.di.DeviceIdProvider
 import de.app.bonn.android.navigation.Screen
-import de.app.bonn.android.network.ApiService
+import de.app.bonn.android.network.remote.ApiService
 import de.app.bonn.android.screen.CustomizedWallpaperService
 import de.app.bonn.android.screen.NotificationPermissionScreen
 import javax.inject.Inject

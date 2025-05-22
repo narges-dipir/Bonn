@@ -1,4 +1,4 @@
-package de.app.bonn.android.network
+package de.app.bonn.android.network.remote
 
 import de.app.bonn.android.network.data.TokenRequest
 import de.app.bonn.android.network.data.responde.VideoResponse

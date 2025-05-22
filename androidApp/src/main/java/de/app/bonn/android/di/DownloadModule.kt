@@ -6,7 +6,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import de.app.bonn.android.download.VideoDownloader
 import de.app.bonn.android.firebase.NotificationHelper
 import javax.inject.Singleton
 
@@ -14,11 +13,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DownloadModule {
 
-    @Provides
-    @Singleton
-    fun provideVideoDownloader(): VideoDownloader {
-        return VideoDownloader()
-    }
 
     @Provides
     @Singleton
