@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.google.hilt)
     alias(libs.plugins.kapt)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -45,7 +47,7 @@ android {
 }
 
 dependencies {
-    implementation(projects.shared)
+     implementation(projects.shared)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
@@ -68,4 +70,15 @@ dependencies {
     implementation(libs.logging.interceptor)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 }
+
+kapt {
+    correctErrorTypes = true
+}
+
+//ksp {
+//    arg("room.schemaLocation", "$projectDir/schemas")
+//}
