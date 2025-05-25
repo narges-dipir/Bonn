@@ -22,6 +22,7 @@ import timber.log.Timber
 class VideoViewModel @Inject constructor(
     private val getVideoUseCase: GetVideoUseCase,
     private val updateBackGroundVideoUseCase: UpdateBackGroundVideoUseCase,
+    private val updateCachedLastVideoUseCase: UpdateBackGroundVideoUseCase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(VideoState())

@@ -21,8 +21,14 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import de.app.bonn.android.domain.video.UpdateCachedLastVideoUseCase
 import de.app.bonn.android.network.data.responde.VideoDecider
+import de.app.bonn.android.repository.getVideo.VideoBackgroundRepository
+import de.app.bonn.android.source.db.BunnDatabase
+import de.app.bonn.android.source.db.VideoLocalDataSource
+import de.app.bonn.android.source.db.dao.VideoDao
 import de.app.bonn.android.source.db.model.VideoCached
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -35,16 +41,13 @@ import javax.inject.Inject
 class VideoDownloadWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
-    private val updateCachedLastVideoUseCase: UpdateCachedLastVideoUseCase
-) : CoroutineWorker(context, workerParams) {
+    ) : CoroutineWorker(context, workerParams), VideoDownloadWorkerInterface {
 
-    @AssistedFactory
-    interface Factory {
-        fun create(context: Context, workerParams: WorkerParameters): VideoDownloadWorker
-    }
-//    @Inject
-  //  lateinit var updateCachedLastVideoUseCase: UpdateCachedLastVideoUseCase
+    private val _downloadedVideo = MutableSharedFlow<VideoDecider>()
+    override val downloadedVideo: Flow<VideoDecider> = _downloadedVideo
 
+    @Inject
+    lateinit var updateCachedLastVideoUseCase: UpdateCachedLastVideoUseCase
     private var video_name: String? = ""
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -84,6 +87,9 @@ class VideoDownloadWorker @AssistedInject constructor(
                 // Final notification after download completes
              //   notify(notificationId, buildDownloadCompleteNotification())
                 updateCachedLastVideoUseCase(VideoDecider(name = video_name!!, video = file.absolutePath, isCacheAvailable = true))
+
+            //   videoDao.updateVideo(VideoCached(name = video_name!!, storagePath = file.absolutePath))
+                _downloadedVideo.tryEmit(VideoDecider(name = video_name!!, video = file.absolutePath, isCacheAvailable = true))
                 return Result.success()
             }
 
