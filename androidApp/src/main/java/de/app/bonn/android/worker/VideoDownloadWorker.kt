@@ -17,7 +17,11 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import de.app.bonn.android.domain.video.UpdateCachedLastVideoUseCase
+import de.app.bonn.android.network.data.responde.VideoDecider
+import de.app.bonn.android.source.db.model.VideoCached
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -25,12 +29,21 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import javax.inject.Inject
 
 @HiltWorker
 class VideoDownloadWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
+    private val updateCachedLastVideoUseCase: UpdateCachedLastVideoUseCase
 ) : CoroutineWorker(context, workerParams) {
+
+    @AssistedFactory
+    interface Factory {
+        fun create(context: Context, workerParams: WorkerParameters): VideoDownloadWorker
+    }
+//    @Inject
+  //  lateinit var updateCachedLastVideoUseCase: UpdateCachedLastVideoUseCase
 
     private var video_name: String? = ""
     private val notificationManager =
@@ -49,7 +62,8 @@ class VideoDownloadWorker @AssistedInject constructor(
         if (!file.exists()) {
             ensureDownloadChannel()
 
-            val foregroundInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Set foreground immediately and maintain it
+            val initialForegroundInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ForegroundInfo(
                     notificationId,
                     buildDownloadNotification(0),
@@ -58,21 +72,23 @@ class VideoDownloadWorker @AssistedInject constructor(
             } else {
                 ForegroundInfo(notificationId, buildDownloadNotification(0))
             }
-            setForeground(foregroundInfo)
+            setForeground(initialForegroundInfo)
 
             val success = downloadVideo(videoUrl, file) { progress ->
+                // Use regular notification update for progress since setForeground is suspend
                 notify(notificationId, buildDownloadNotification(progress))
             }
 
             if (success) {
-                notifyWallpaperService(applicationContext)
-                notify(notificationId, buildDownloadCompleteNotification())
+             //   notifyWallpaperService(applicationContext)
+                // Final notification after download completes
+             //   notify(notificationId, buildDownloadCompleteNotification())
+                updateCachedLastVideoUseCase(VideoDecider(name = video_name!!, video = file.absolutePath, isCacheAvailable = true))
                 return Result.success()
             }
 
             return Result.retry()
         } else {
-            Timber.i("**** file exist ${file.exists()}")
             notifyWallpaperService(applicationContext)
             return Result.retry()
         }
@@ -91,9 +107,12 @@ class VideoDownloadWorker @AssistedInject constructor(
             val channel = NotificationChannel(
                 channelId,
                 "Video Downloads",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_LOW // Changed from HIGH to LOW to prevent auto-dismissal
             ).apply {
                 description = "Shows progress of video downloads"
+                setShowBadge(false)
+                enableVibration(false)
+                setSound(null, null)
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -103,10 +122,14 @@ class VideoDownloadWorker @AssistedInject constructor(
         Timber.d("*** Building download notification with progress: $progress")
         return NotificationCompat.Builder(applicationContext, channelId)
             .setContentTitle("Downloading video")
-            .setContentText("Progress: $progress%")
+            .setContentText("$video_name - Progress: $progress%")
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setProgress(100, progress, false)
             .setOngoing(true)
+            .setAutoCancel(false) // Don't allow user to dismiss
+            .setPriority(NotificationCompat.PRIORITY_LOW) // Low priority to prevent auto-dismissal
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE) // Keep as foreground
             .build()
     }
 
@@ -114,15 +137,20 @@ class VideoDownloadWorker @AssistedInject constructor(
         Timber.d("Building download complete notification")
         return NotificationCompat.Builder(applicationContext, channelId)
             .setContentTitle("Download complete")
-            .setContentText("Your live wallpaper is ready")
+            .setContentText("$video_name - Your live wallpaper is ready")
             .setSmallIcon(android.R.drawable.stat_sys_download_done)
             .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
     }
 
     fun notify(id: Int = notificationId, notification: Notification) {
         Timber.d("Notifying with notification: $notification")
-        notificationManager.notify(id, notification)
+        try {
+            notificationManager.notify(id, notification)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to show notification")
+        }
     }
 
     suspend fun downloadVideo(
@@ -134,6 +162,8 @@ class VideoDownloadWorker @AssistedInject constructor(
             Timber.d("Downloading video from URL: $url")
             val connection = URL(url).openConnection() as HttpURLConnection
             connection.requestMethod = "GET"
+            connection.connectTimeout = 30000 // 30 seconds
+            connection.readTimeout = 30000
             connection.connect()
 
             val fileLength = connection.contentLength
@@ -145,20 +175,29 @@ class VideoDownloadWorker @AssistedInject constructor(
             val input = connection.inputStream
             val output = FileOutputStream(outputFile)
 
-            val buffer = ByteArray(1024)
+            val buffer = ByteArray(8192) // Increased buffer size
             var total: Long = 0
             var count: Int
             var lastUpdateTime = System.currentTimeMillis()
             var lastProgress = -1
 
             while (input.read(buffer).also { count = it } != -1) {
+                // Check if work is stopped
+                if (isStopped) {
+                    input.close()
+                    output.close()
+                    outputFile.delete()
+                    return@withContext false
+                }
+
                 total += count
                 output.write(buffer, 0, count)
 
                 val progress = ((total * 100) / fileLength).toInt()
                 val now = System.currentTimeMillis()
 
-                if ((now - lastUpdateTime > 500) && progress != lastProgress) {
+                // Update progress more frequently but throttle updates
+                if ((now - lastUpdateTime > 1000) && progress != lastProgress) { // Update every 1 second
                     lastUpdateTime = now
                     lastProgress = progress
                     onProgress(progress)
@@ -168,10 +207,15 @@ class VideoDownloadWorker @AssistedInject constructor(
             output.flush()
             output.close()
             input.close()
+            connection.disconnect()
+
+            // Final progress update
+            onProgress(100)
 
             true
         } catch (e: Exception) {
             Timber.e(e, "Download failed")
+            outputFile.delete() // Clean up partial file
             false
         }
     }
@@ -181,10 +225,11 @@ class VideoDownloadWorker @AssistedInject constructor(
             val workRequest = OneTimeWorkRequestBuilder<VideoDownloadWorker>()
                 .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .setInputData(workDataOf("video_url" to videoUrl, "video_name" to video_name))
+                .addTag("video_download") // Add tag for easier management
                 .build()
 
             WorkManager.getInstance(context).enqueueUniqueWork(
-                "VideoDownloadWorker",
+                "VideoDownloadWorker_$video_name", // Make unique per video
                 androidx.work.ExistingWorkPolicy.REPLACE,
                 workRequest
             )

@@ -6,9 +6,14 @@ import de.app.bonn.android.network.data.responde.Video
 import de.app.bonn.android.network.data.responde.VideoDecider
 import de.app.bonn.android.network.remote.VideoNetworkDataSource
 import de.app.bonn.android.repository.toVideo
+import de.app.bonn.android.repository.toVideoCached
+import de.app.bonn.android.repository.toVideoDecider
 import de.app.bonn.android.source.db.VideoLocalDataSource
 import de.app.bonn.android.source.db.model.VideoCached
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
@@ -18,27 +23,31 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
     private val videoLocalDataSource: VideoLocalDataSource,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : VideoBackgroundRepository {
-
-    suspend fun getLastVideo(): VideoDecider {
-        val remoteVideo = getRemoteLastVideo("")
+    private val _newVideo = MutableSharedFlow<VideoDecider>()
+    override val newVideo: Flow<VideoDecider> = _newVideo
+    override fun getLastVideo(deviceId: String): Flow<Result<VideoDecider>> = flow {
+        val remoteVideo = getRemoteLastVideo(deviceId)
         if (remoteVideo is Result.Success) {
             val video = remoteVideo.data
             val cachedVideo = getCachedLastVideo(video.name)
             if (cachedVideo is Result.Success) {
-                return VideoDecider(
+                emit(Result.Success( VideoDecider(
                     isCacheAvailable = true,
                     video = video.name,
                     name = video.name
                 )
+                ))
             } else {
-                return VideoDecider(
+                emit( Result.Success( VideoDecider(
                     isCacheAvailable = false,
                     video = video.url,
                     name = video.name
                 )
+                )
+                )
             }
         } else {
-            return VideoDecider(name = "", video = "", isCacheAvailable = false)
+            emit(Result.Error("Unable to fetch video"))
         }
     }
     override suspend fun getRemoteLastVideo(deviceId: String): Result<Video> = withContext(ioDispatcher) {
@@ -57,21 +66,27 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getCachedLastVideo(name: String): Result<VideoCached> {
+    override suspend fun getCachedLastVideo(name: String): Result<VideoCached> = withContext(ioDispatcher) {
         val cachedVideo = videoLocalDataSource.getLastCachedVideo(name)
-        if (cachedVideo.storagePath.isNotEmpty() && doesVideoExist( cachedVideo.storagePath, videoName = name)) {
-            return Result.Success(cachedVideo)
+        return@withContext if (cachedVideo.storagePath != "" && doesVideoExist(cachedVideo.storagePath, videoName = name)) {
+            Result.Success(cachedVideo)
         } else {
-            return Result.Error("Cached video not found")
+            Result.Error("Cached video not found")
         }
-
     }
 
-    override suspend fun updateCachedLastVideo(video: Video) {
-        TODO("Not yet implemented")
+    override fun updateCachedLastVideo(videoDecider: VideoDecider) {
+        videoLocalDataSource.updateVideo(videoDecider.toVideoCached())
+        val video = videoLocalDataSource.getLastCachedVideo(videoDecider.name)
+        _newVideo.tryEmit(video.toVideoDecider())
     }
 
-    fun doesVideoExist(storagePath: String, videoName: String): Boolean {
+    override fun updateBackGroundVideo(videoName: String): Flow<Result<VideoDecider>> = flow {
+        val video = videoLocalDataSource.getLastCachedVideo(videoName)
+        emit(Result.Success(video.toVideoDecider()))
+    }
+
+    private fun doesVideoExist(storagePath: String, videoName: String): Boolean {
         val file = File(storagePath, "$videoName.mp4")
         return file.exists()
     }

@@ -95,7 +95,7 @@ private lateinit var navController: NavHostController
     fun AppNavGraph(navController: NavHostController) {
         NavHost(navController = navController, startDestination = "notification_screen") {
             composable(Screen.NotificationScreen.route) {
-                NotificationPermissionScreen(apiService, deviceIDProvider)
+                NotificationPermissionScreen(deviceIDProvider = deviceIDProvider)
             }
             composable(Screen.WallpaperScreen.route) {
                 CustomizedWallpaperService()

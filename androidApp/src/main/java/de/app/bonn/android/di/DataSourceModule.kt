@@ -7,6 +7,9 @@ import dagger.hilt.components.SingletonComponent
 import de.app.bonn.android.network.remote.ApiService
 import de.app.bonn.android.network.remote.VideoNetworkDataSource
 import de.app.bonn.android.network.remote.VideoNetworkDataSourceImpl
+import de.app.bonn.android.source.db.VideoLocalDataSource
+import de.app.bonn.android.source.db.VideoLocalDataSourceImpl
+import de.app.bonn.android.source.db.dao.VideoDao
 import javax.inject.Singleton
 
 @Module
@@ -17,5 +20,13 @@ object DataSourceModule {
     @Singleton
     fun provideVideoNetworkDataSource(apiService: ApiService): VideoNetworkDataSource {
         return VideoNetworkDataSourceImpl(apiService = apiService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideVideoLocalDataSource(
+        videoDao: VideoDao
+    ): VideoLocalDataSource {
+        return VideoLocalDataSourceImpl(videoDao = videoDao)
     }
 }

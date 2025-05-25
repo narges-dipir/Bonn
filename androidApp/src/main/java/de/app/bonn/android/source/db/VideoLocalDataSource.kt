@@ -4,4 +4,5 @@ import de.app.bonn.android.source.db.model.VideoCached
 
 interface VideoLocalDataSource {
     fun getLastCachedVideo(name: String): VideoCached
+    fun updateVideo(video: VideoCached)
 }

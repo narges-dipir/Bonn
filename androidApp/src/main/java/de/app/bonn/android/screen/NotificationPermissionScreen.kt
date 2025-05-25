@@ -29,8 +29,10 @@ import de.app.bonn.android.di.DeviceIdProvider
 import de.app.bonn.android.material.Background
 import de.app.bonn.android.material.ManropeWght
 import de.app.bonn.android.material.SchickBlack
+import androidx.hilt.navigation.compose.hiltViewModel
 import de.app.bonn.android.network.remote.ApiService
 import de.app.bonn.android.network.data.responde.VideoResponse
+import de.app.bonn.android.screen.viewmodel.VideoViewModel
 import de.app.bonn.android.widget.GreenRoundedButton
 import de.app.bonn.android.worker.VideoDownloadWorker
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +42,7 @@ import retrofit2.Response
 
 @Composable
 fun NotificationPermissionScreen(
-    apiService: ApiService?,
+    videoViewModel: VideoViewModel = hiltViewModel(),
     deviceIDProvider: DeviceIdProvider?
 ) {
     val context = LocalContext.current
@@ -53,7 +55,8 @@ fun NotificationPermissionScreen(
             contract = ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                var videos : Response<VideoResponse> ?= null
+                videoViewModel.getVideo(deviceId = deviceID, context)
+               /* var videos : Response<VideoResponse> ?= null
                 runBlocking(Dispatchers.IO) {
                     val videoTask = async { videos  = apiService!!.getLastVideo(deviceId = deviceID) }
                     videoTask.await()
@@ -63,7 +66,7 @@ fun NotificationPermissionScreen(
                             VideoDownloadWorker.initiate(context, it.body()!!.url, it.body()!!.name)
                         }
                     }
-                }
+                } */
             } else {
 
             }
@@ -118,5 +121,5 @@ fun NotificationPermissionScreen(
 @Preview
 @Composable
 fun PreviewNotificationPermissionScreen() {
-    NotificationPermissionScreen(null, null)
+   // NotificationPermissionScreen(null, null)
 }
