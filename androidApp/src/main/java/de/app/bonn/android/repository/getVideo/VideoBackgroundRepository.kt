@@ -10,7 +10,7 @@ interface VideoBackgroundRepository {
  fun getLastVideo(deviceId: String): Flow<Result<VideoDecider>>
  suspend fun getRemoteLastVideo(deviceId: String): Result<Video>
  suspend fun getCachedLastVideo(name: String) : Result<VideoCached>
- fun updateCachedLastVideo(videoDecider: VideoDecider)
+ suspend fun updateCachedLastVideo(videoDecider: VideoDecider)
  fun updateBackGroundVideo(videoName: String) : Flow<Result<VideoDecider>>
  val newVideo: Flow<VideoDecider>
 }

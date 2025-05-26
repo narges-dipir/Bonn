@@ -55,7 +55,7 @@ fun NotificationPermissionScreen(
             contract = ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                videoViewModel.getVideo(deviceId = deviceID, context)
+                videoViewModel.getVideo(deviceId = deviceID)
                /* var videos : Response<VideoResponse> ?= null
                 runBlocking(Dispatchers.IO) {
                     val videoTask = async { videos  = apiService!!.getLastVideo(deviceId = deviceID) }

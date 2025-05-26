@@ -9,7 +9,7 @@ import javax.inject.Singleton
 class UpdateCachedLastVideoUseCase @Inject constructor(
     private val videoBackgroundRepository: VideoBackgroundRepository
 ) {
-    operator fun invoke(videoDecider: VideoDecider) {
+    suspend operator fun invoke(videoDecider: VideoDecider) {
         videoBackgroundRepository.updateCachedLastVideo(videoDecider)
     }
 }

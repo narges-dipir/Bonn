@@ -15,31 +15,35 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.qualifiers.ApplicationContext
 import de.app.bonn.android.common.Result
 import de.app.bonn.android.domain.video.UpdateBackGroundVideoUseCase
+import de.app.bonn.android.manager.VideoManager
 import de.app.bonn.android.worker.VideoDownloadWorker
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @HiltViewModel
 class VideoViewModel @Inject constructor(
     private val getVideoUseCase: GetVideoUseCase,
+    private val videoManager: VideoManager,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(VideoState())
     val uiState = _uiState.asStateFlow()
 
-    fun getVideo(deviceId: String, context: Context) {
+
+
+    fun getVideo(deviceId: String) {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
         getVideoUseCase(deviceId).onEach { video ->
             println(" **** im in getVideo **** $video")
             when (video) {
                 is Result.Success -> {
-                    when (video.data.isCacheAvailable) {
-                        true -> {
-                            notifyWallpaperService(context, video.data.name)
-                        }
-                        false -> {
-                            VideoDownloadWorker.initiate(context, video.data.video, video.data.name)
-                        }
-                    }
+                    val data = video.data
+                    println("**** Video: ${video.data} ****")
+                    videoManager.downloadVideoIfNeeded(
+                        videoUrl = data.video,
+                        videoName = data.name,
+                        isCached = data.isCacheAvailable
+                    )
                 }
                 is Result.Error -> {
                     Timber.i("Error fetching video: ")
@@ -48,14 +52,6 @@ class VideoViewModel @Inject constructor(
 
         }.launchIn(viewModelScope)
 
-    }
-
-    private fun notifyWallpaperService(context: Context, video_name: String) {
-        val intent = Intent("UPDATE_LIVE_WALLPAPER").apply {
-            setPackage("de.app.bonn.android")
-            putExtra("video_name", video_name)
-        }
-        context.sendBroadcast(intent)
     }
 
 }

@@ -75,10 +75,10 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun updateCachedLastVideo(videoDecider: VideoDecider) {
+    override suspend fun updateCachedLastVideo(videoDecider: VideoDecider) {
         videoLocalDataSource.updateVideo(videoDecider.toVideoCached())
         val video = videoLocalDataSource.getLastCachedVideo(videoDecider.name)
-        _newVideo.tryEmit(video.toVideoDecider())
+        _newVideo.emit(video.toVideoDecider())
     }
 
     override fun updateBackGroundVideo(videoName: String): Flow<Result<VideoDecider>> = flow {
