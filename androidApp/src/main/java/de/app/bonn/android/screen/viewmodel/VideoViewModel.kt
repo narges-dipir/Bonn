@@ -21,23 +21,10 @@ import timber.log.Timber
 @HiltViewModel
 class VideoViewModel @Inject constructor(
     private val getVideoUseCase: GetVideoUseCase,
-    private val updateBackGroundVideoUseCase: UpdateBackGroundVideoUseCase,
-    private val updateCachedLastVideoUseCase: UpdateBackGroundVideoUseCase,
-    @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(VideoState())
     val uiState = _uiState.asStateFlow()
 
-    init {
-        observeNewVideo()
-    }
-
-    private fun observeNewVideo() {
-        updateBackGroundVideoUseCase().onEach { videoDecider ->
-            println(" **** im in observeNewVideo ****")
-            notifyWallpaperService(context, videoDecider.name)
-        }
-    }
     fun getVideo(deviceId: String, context: Context) {
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 

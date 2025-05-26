@@ -37,17 +37,20 @@ import java.net.HttpURLConnection
 import java.net.URL
 import javax.inject.Inject
 
-@HiltWorker
+
 class VideoDownloadWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
+    private val updateCachedLastVideoUseCase: UpdateCachedLastVideoUseCase
     ) : CoroutineWorker(context, workerParams), VideoDownloadWorkerInterface {
+    @AssistedFactory
+    interface Factory {
+        fun create(context: Context, workerParams: WorkerParameters): VideoDownloadWorker
+    }
 
     private val _downloadedVideo = MutableSharedFlow<VideoDecider>()
     override val downloadedVideo: Flow<VideoDecider> = _downloadedVideo
 
-    @Inject
-    lateinit var updateCachedLastVideoUseCase: UpdateCachedLastVideoUseCase
     private var video_name: String? = ""
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

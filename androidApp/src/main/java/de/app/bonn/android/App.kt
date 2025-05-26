@@ -7,6 +7,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
 import dagger.hilt.android.HiltAndroidApp
+import de.app.bonn.android.worker.AppWorkerFactory
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -16,7 +17,7 @@ import javax.inject.Inject
 @HiltAndroidApp
 class App : Application(), Configuration.Provider {
     @Inject
-    lateinit var workerFactory: HiltWorkerFactory
+    lateinit var workerFactory: AppWorkerFactory
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
