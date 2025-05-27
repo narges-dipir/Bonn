@@ -92,6 +92,7 @@ class VideoLiveWallpaperService : WallpaperService() {
                 setSurface(surfaceHolder.surface)
                 isLooping = true
                 setOnPreparedListener { it.start() }
+                setVolume(0f, 0f)
                 prepareAsync()
             }
         }
