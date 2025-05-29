@@ -63,7 +63,7 @@ class VideoDownloadWorker @AssistedInject constructor(
         Timber.i("Video URL: $videoUrl")
         Timber.i("Video Name: $video_name")
 
-        val file = File(applicationContext.getExternalFilesDir(null), "$video_name.mp4")
+        val file = File(applicationContext.getExternalFilesDir(null), "$video_name")
 
         if (!file.exists()) {
             ensureDownloadChannel()
@@ -80,33 +80,29 @@ class VideoDownloadWorker @AssistedInject constructor(
             }
             setForeground(initialForegroundInfo)
 
+            println("*** Starting download for $video_name ***")
             val success = downloadVideo(videoUrl, file) { progress ->
-                // Use regular notification update for progress since setForeground is suspend
                 notify(notificationId, buildDownloadNotification(progress))
             }
+            println(" *** Download completed for $video_name ${file.absolutePath} ***")
 
             if (success) {
-             //   notifyWallpaperService(applicationContext)
-                // Final notification after download completes
-             //   notify(notificationId, buildDownloadCompleteNotification())
                 updateCachedLastVideoUseCase(VideoDecider(name = video_name!!, video = file.absolutePath, isCacheAvailable = true))
-
-            //   videoDao.updateVideo(VideoCached(name = video_name!!, storagePath = file.absolutePath))
-                _downloadedVideo.tryEmit(VideoDecider(name = video_name!!, video = file.absolutePath, isCacheAvailable = true))
                 return Result.success()
             }
 
             return Result.retry()
         } else {
-            notifyWallpaperService(applicationContext)
+            notifyWallpaperService(video_name!!, context = applicationContext)
             return Result.retry()
         }
     }
 
-    private fun notifyWallpaperService(context: Context) {
+    fun notifyWallpaperService(videoName: String, context: Context) {
+        println(" **** Sending broadcast for $videoName")
         val intent = Intent("UPDATE_LIVE_WALLPAPER").apply {
             setPackage("de.app.bonn.android")
-            putExtra("video_name", video_name)
+            putExtra("video_name", videoName)
         }
         context.sendBroadcast(intent)
     }

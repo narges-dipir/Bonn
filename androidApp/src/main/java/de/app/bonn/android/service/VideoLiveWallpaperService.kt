@@ -81,9 +81,9 @@ class VideoLiveWallpaperService : WallpaperService() {
         }
 
         private fun playVideo(videoName: String) {
-            val file = File(applicationContext.getExternalFilesDir(null), "$videoName.mp4")
+            val file = File(applicationContext.getExternalFilesDir(null), "$videoName")
             if (!file.exists()) {
-                Timber.tag("WallpaperService").e("Video file not found: $videoName.mp4")
+                Timber.tag("WallpaperService").e("Video file not found: $videoName")
                 return
             }
 

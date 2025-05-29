@@ -76,6 +76,7 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateCachedLastVideo(videoDecider: VideoDecider) {
+        println(" **** Updating cached last video: ${videoDecider.name} ****")
         videoLocalDataSource.updateVideo(videoDecider.toVideoCached())
         val video = videoLocalDataSource.getLastCachedVideo(videoDecider.name)
         _newVideo.emit(video.toVideoDecider())
@@ -87,7 +88,7 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
     }
 
     private fun doesVideoExist(storagePath: String, videoName: String): Boolean {
-        val file = File(storagePath, "$videoName.mp4")
+        val file = File(storagePath, "$videoName")
         return file.exists()
     }
 
