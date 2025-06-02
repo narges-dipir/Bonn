@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
@@ -21,7 +22,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,7 +44,24 @@ import java.io.File
 @Composable
 fun DefaultScreen() {
     val context = LocalContext.current
-    val videoName =  remember {   SharedPreferencesHelper.getString(LAST_VIDEO_NAME) }
+    var initialized by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        SharedPreferencesHelper.ensureInitialized(context)
+        initialized = true
+    }
+
+    if (!initialized) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    val videoName by SharedPreferencesHelper
+        .getStringFlow(LAST_VIDEO_NAME)
+        .collectAsState()
+
     val file = File(context.getExternalFilesDir(null), "$videoName")
 
     Box(modifier = Modifier.fillMaxSize()) {
