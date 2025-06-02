@@ -19,6 +19,8 @@ import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import de.app.bonn.android.common.LAST_VIDEO_NAME
+import de.app.bonn.android.di.SharedPreferencesHelper
 import de.app.bonn.android.domain.video.UpdateCachedLastVideoUseCase
 import de.app.bonn.android.network.data.responde.VideoDecider
 import de.app.bonn.android.repository.getVideo.VideoBackgroundRepository
@@ -99,11 +101,12 @@ class VideoDownloadWorker @AssistedInject constructor(
     }
 
     fun notifyWallpaperService(videoName: String, context: Context) {
-        println(" **** Sending broadcast for $videoName")
+        println(" **** Sending broadcast for $videoName from worker")
         val intent = Intent("UPDATE_LIVE_WALLPAPER").apply {
             setPackage("de.app.bonn.android")
             putExtra("video_name", videoName)
         }
+        SharedPreferencesHelper.putString(LAST_VIDEO_NAME, videoName)
         context.sendBroadcast(intent)
     }
 

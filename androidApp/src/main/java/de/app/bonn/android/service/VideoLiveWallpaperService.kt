@@ -14,14 +14,17 @@ import android.os.Build
 import android.service.wallpaper.WallpaperService
 import android.view.SurfaceHolder
 import androidx.core.app.NotificationCompat
+import dagger.hilt.android.AndroidEntryPoint
 import de.app.bonn.android.R
 import timber.log.Timber
 import java.io.File
 
+@AndroidEntryPoint
 class VideoLiveWallpaperService : WallpaperService() {
 
     private var videoEngine: VideoEngine? = null
     private var video_name = "starter"
+
 
     override fun onCreateEngine(): Engine {
         videoEngine = VideoEngine()
@@ -86,7 +89,6 @@ class VideoLiveWallpaperService : WallpaperService() {
                 Timber.tag("WallpaperService").e("Video file not found: $videoName")
                 return
             }
-
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(applicationContext, Uri.fromFile(file))
                 setSurface(surfaceHolder.surface)
@@ -118,7 +120,7 @@ class VideoLiveWallpaperService : WallpaperService() {
 
         private fun createNotification(): Notification {
             return NotificationCompat.Builder(applicationContext, "wallpaper_service")
-                .setContentTitle("Bonn Is Running")
+                .setContentTitle("")
                 .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setOngoing(true)
                 .build()

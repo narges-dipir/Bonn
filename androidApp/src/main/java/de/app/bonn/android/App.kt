@@ -3,10 +3,10 @@ package de.app.bonn.android
 import android.app.Application
 import android.content.Context
 import android.util.Log
-import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
 import dagger.hilt.android.HiltAndroidApp
+import de.app.bonn.android.di.SharedPreferencesHelper
 import de.app.bonn.android.worker.AppWorkerFactory
 import timber.log.Timber
 import java.io.File
@@ -18,7 +18,6 @@ import javax.inject.Inject
 class App : Application(), Configuration.Provider {
     @Inject
     lateinit var workerFactory: AppWorkerFactory
-
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -28,6 +27,7 @@ class App : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         FirebaseApp.initializeApp(this)
+        SharedPreferencesHelper.init(applicationContext)
         copyVideoToExternalFiles(this, "starter")
     }
 

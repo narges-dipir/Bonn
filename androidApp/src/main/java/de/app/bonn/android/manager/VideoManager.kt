@@ -3,6 +3,8 @@ package de.app.bonn.android.manager
 import android.content.Context
 import android.content.Intent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import de.app.bonn.android.common.LAST_VIDEO_NAME
+import de.app.bonn.android.di.SharedPreferencesHelper
 import de.app.bonn.android.domain.video.UpdateBackGroundVideoUseCase
 import de.app.bonn.android.worker.VideoDownloadWorker
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +24,7 @@ class VideoManager @Inject constructor(
     init {
         startObservingNewVideo()
     }
-    fun startObservingNewVideo() {
+    private fun startObservingNewVideo() {
         scope.launch {
             updateBackGroundVideoUseCase().collect { video ->
                 println(" **** im in updateBackGroundVideoUseCase **** $video")
@@ -32,12 +34,13 @@ class VideoManager @Inject constructor(
             }
         }
     }
-    fun notifyWallpaperService(videoName: String) {
-        println(" **** Sending broadcast for $videoName")
+    private fun notifyWallpaperService(videoName: String) {
+        println(" **** Sending broadcast for $videoName from VideoManager ****")
         val intent = Intent("UPDATE_LIVE_WALLPAPER").apply {
             setPackage("de.app.bonn.android")
             putExtra("video_name", videoName)
         }
+        SharedPreferencesHelper.putString(LAST_VIDEO_NAME, videoName)
         context.sendBroadcast(intent)
     }
 
