@@ -26,6 +26,7 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
     private val _newVideo = MutableSharedFlow<VideoDecider>()
     override val newVideo: Flow<VideoDecider> = _newVideo
     override fun getLastVideo(deviceId: String): Flow<Result<VideoDecider>> = flow {
+        emit(Result.Loading<VideoDecider>())
         val remoteVideo = getRemoteLastVideo(deviceId)
         if (remoteVideo is Result.Success) {
             val video = remoteVideo.data

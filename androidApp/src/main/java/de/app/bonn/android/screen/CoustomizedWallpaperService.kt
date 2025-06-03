@@ -14,17 +14,25 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import de.app.bonn.android.MainActivity
+import de.app.bonn.android.di.DeviceIdProvider
+import de.app.bonn.android.screen.viewmodel.VideoViewModel
 import de.app.bonn.android.service.VideoLiveWallpaperService
 
 @Composable
-fun CustomizedWallpaperService() {
+fun CustomizedWallpaperService(
+    videoViewModel: VideoViewModel = hiltViewModel(),
+    deviceIDProvider: DeviceIdProvider
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
     ) {
         val context = LocalContext.current
 
+        val deviceId = deviceIDProvider.getDeviceId()
+        videoViewModel.getVideo(deviceId = deviceId)
         val launcher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
         ) {
@@ -45,7 +53,6 @@ fun CustomizedWallpaperService() {
             launcher.launch(intent)
         }
 
-        // Optional visual feedback while wallpaper UI is open
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Opening wallpaper picker…")
         }

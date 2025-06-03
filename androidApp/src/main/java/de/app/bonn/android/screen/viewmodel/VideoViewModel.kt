@@ -40,13 +40,21 @@ class VideoViewModel @Inject constructor(
                     val data = video.data
                     println("**** Video: ${video.data} ****")
                     videoManager.downloadVideoIfNeeded(
-                        videoUrl = data.video,
+                        videoUrl = data.video ?: "starter.mp4",
                         videoName = data.name,
                         isCached = data.isCacheAvailable
                     )
                 }
                 is Result.Error -> {
                     Timber.i("Error fetching video: ")
+                }
+
+                is Result.Loading<*> -> {
+                    videoManager.downloadVideoIfNeeded(
+                        videoUrl = "",
+                        videoName = "starter.mp4",
+                        isCached = true
+                    )
                 }
             }
 

@@ -120,7 +120,7 @@ private lateinit var navController: NavHostController
                 NotificationPermissionScreen(deviceIDProvider = deviceIDProvider)
             }
             composable(Screen.WallpaperScreen.route) {
-                CustomizedWallpaperService()
+                CustomizedWallpaperService(deviceIDProvider = deviceIDProvider)
             }
             composable(Screen.DefaultWallpaperScreen.route) {
                 DefaultScreen()

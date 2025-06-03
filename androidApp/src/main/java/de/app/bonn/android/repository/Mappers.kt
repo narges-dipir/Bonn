@@ -17,7 +17,7 @@ fun VideoResponse.toVideo(): Video {
 fun VideoDecider.toVideoCached(): VideoCached {
     return VideoCached(
         name = name,
-        storagePath = video
+        storagePath = video ?: "starter.mp4",
     )
 }
 
