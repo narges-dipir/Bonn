@@ -36,8 +36,8 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 private lateinit var navController: NavHostController
-    @Inject
-    lateinit var apiService: ApiService
+//    @Inject
+//    lateinit var apiService: ApiService
 
     @Inject
     lateinit var deviceIDProvider: DeviceIdProvider
@@ -46,7 +46,6 @@ private lateinit var navController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SharedPreferencesHelper.putBoolean(IS_WALLPAPER_SET, isMyLiveWallpaperActive(this))
-        println("**** isMyLiveWallpaperActive: ${SharedPreferencesHelper.getBoolean(IS_WALLPAPER_SET)}")
         setContent {
            navController = rememberNavController()
             AppNavGraph(navController)
@@ -56,7 +55,7 @@ private lateinit var navController: NavHostController
 
     override fun onResume() {
         super.onResume()
-        println(" *** im in onResume")
+
         if (::navController.isInitialized) {
             navigateBasedOnPermission(this, navController)
         }

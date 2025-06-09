@@ -5,6 +5,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import de.app.bonn.android.network.remote.ApiService
+import de.app.bonn.android.network.remote.AppVersionDataSource
+import de.app.bonn.android.network.remote.AppVersionDataSourceImpl
 import de.app.bonn.android.network.remote.VideoNetworkDataSource
 import de.app.bonn.android.network.remote.VideoNetworkDataSourceImpl
 import de.app.bonn.android.source.db.VideoLocalDataSource
@@ -15,6 +17,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DataSourceModule {
+
+    @Provides
+    @Singleton
+    fun provideAppVersionDataSource(apiService: ApiService): AppVersionDataSource {
+        return AppVersionDataSourceImpl(apiService = apiService)
+    }
 
     @Provides
     @Singleton

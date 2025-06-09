@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -21,6 +22,9 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,20 +41,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import de.app.bonn.android.common.LAST_VIDEO_NAME
 import de.app.bonn.android.di.SharedPreferencesHelper
+import de.app.bonn.android.material.LightGrassGreen
+import de.app.bonn.android.network.data.responde.VersionDecider
+import de.app.bonn.android.screen.viewmodel.VersionViewModel
+import de.app.bonn.android.widget.VersionAlertDialog
 import java.io.File
 
 @Composable
-fun DefaultScreen() {
+fun DefaultScreen(
+    versionViewModel: VersionViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     var initialized by remember { mutableStateOf(false) }
-
     LaunchedEffect(Unit) {
         SharedPreferencesHelper.ensureInitialized(context)
         initialized = true
+        versionViewModel.getLatestVersion()
     }
-
     if (!initialized) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -64,7 +74,16 @@ fun DefaultScreen() {
 
     val file = File(context.getExternalFilesDir(null), "$videoName")
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val versionState by versionViewModel.versionState.collectAsState()
+    val version = versionState.version
+
+    VersionAlertDialog(
+        version = version,
+        backgroundColor = Color(0xFFFAFAFA), // or any custom color
+        onDismiss = { println("ok!") }
+    )
+
+    Box(modifier = Modifier.fillMaxSize().background(LightGrassGreen)) {
     AndroidView(
         modifier = Modifier
             .fillMaxSize(),
@@ -91,6 +110,7 @@ fun DefaultScreen() {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+
             Text(
                 text = "Wallpaper applied!",
                 color = Color.White,
@@ -111,11 +131,11 @@ fun DefaultScreen() {
             verticalArrangement = Arrangement.Top
         ) {
             IconButton(onClick = { /* TODO: Open drawer or go home */ }) {
-                Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
+                Icon(Icons.Default.Person, contentDescription = "Home", tint = Color.White)
             }
             Spacer(modifier = Modifier.height(16.dp))
             IconButton(onClick = { /* TODO: Open favorites */ }) {
-                Icon(Icons.Default.Favorite, contentDescription = "Favorites", tint = Color.White)
+                Icon(Icons.Default.Info, contentDescription = "Favorites", tint = Color.White)
             }
         }
 
@@ -123,13 +143,21 @@ fun DefaultScreen() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 40.dp),
+                .padding(bottom = 40.dp)
+                .background(Color.Transparent),
             verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Button(onClick = { /* Set another wallpaper */ }) {
-                Text("Set another wallpaper")
-            }
+            Text(
+                text = "Drink a glass of water every morning!",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+                    .fillMaxWidth()
+            )
         }
     }
 }
