@@ -16,21 +16,27 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.DrawerValue
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,10 +50,11 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.app.bonn.android.common.LAST_VIDEO_NAME
 import de.app.bonn.android.di.SharedPreferencesHelper
-import de.app.bonn.android.material.LightGrassGreen
-import de.app.bonn.android.network.data.responde.VersionDecider
+import de.app.bonn.android.material.DarkGrassGreen
+import de.app.bonn.android.material.LightBeige
 import de.app.bonn.android.screen.viewmodel.VersionViewModel
 import de.app.bonn.android.widget.VersionAlertDialog
+import kotlinx.coroutines.launch
 import java.io.File
 
 @Composable
@@ -73,91 +80,101 @@ fun DefaultScreen(
         .collectAsState()
 
     val file = File(context.getExternalFilesDir(null), "$videoName")
+    val title = videoName?.toSpacedWords() ?: "Stay Healthy!"
 
     val versionState by versionViewModel.versionState.collectAsState()
     val version = versionState.version
 
+    val drawerState = rememberDrawerState(androidx.compose.material3.DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    var currentScreen by remember { mutableStateOf("Home") }
+
     VersionAlertDialog(
         version = version,
-        backgroundColor = Color(0xFFFAFAFA), // or any custom color
+        backgroundColor = Color(0xFFFAFAFA),
         onDismiss = { println("ok!") }
     )
 
-    Box(modifier = Modifier.fillMaxSize().background(LightGrassGreen)) {
-    AndroidView(
-        modifier = Modifier
-            .fillMaxSize(),
-        factory = {
-            val videoView = VideoView(it).apply {
-                setVideoURI(file.toUri())
-                setOnPreparedListener { mediaPlayer ->
-                    mediaPlayer.isLooping = true
-                    mediaPlayer.setVolume(1f, 1f)
-                    start()
-                }
-            }
-            videoView
-        },
-        update = { view ->
-            if (!view.isPlaying) {
-                view.start()
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            Column(modifier = Modifier.padding(16.dp).background(color = LightBeige.copy(alpha = 0.3f))) {
+                Text("Menu", fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.padding(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                DrawerItem("About the App") { currentScreen = "About"; scope.launch { drawerState.close() } }
+                DrawerItem("Latest Version") { currentScreen = "Version"; scope.launch { drawerState.close() } }
+                DrawerItem("How to Use the App") { currentScreen = "HowTo" ; scope.launch { drawerState.close() } }
             }
         }
-    )
-        // 📝 Overlay text centered
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-
-            Text(
-                text = "Wallpaper applied!",
-                color = Color.White,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
-                    .padding(12.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize().background(DarkGrassGreen)) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = {
+                    VideoView(it).apply {
+                        setVideoURI(file.toUri())
+                        setOnPreparedListener { mediaPlayer ->
+                            mediaPlayer.isLooping = true
+                            mediaPlayer.setVolume(1f, 1f)
+                            start()
+                        }
+                    }
+                },
+                update = { view -> if (!view.isPlaying) view.start() }
             )
-        }
 
-        // 📖 Side menu (vertical)
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(top = 60.dp, start = 16.dp)
-                .width(48.dp),
-            verticalArrangement = Arrangement.Top
-        ) {
-            IconButton(onClick = { /* TODO: Open drawer or go home */ }) {
-                Icon(Icons.Default.Person, contentDescription = "Home", tint = Color.White)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            IconButton(onClick = { /* TODO: Open favorites */ }) {
-                Icon(Icons.Default.Info, contentDescription = "Favorites", tint = Color.White)
-            }
-        }
-
-        // 🔘 Bottom buttons
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 40.dp)
-                .background(Color.Transparent),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = "Drink a glass of water every morning!",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+            // Open drawer button (top-left)
+            IconButton(
+                onClick = { scope.launch { drawerState.open() } },
                 modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
-                    .padding(12.dp)
-                    .fillMaxWidth()
-            )
+                    .padding(24.dp)
+                    .align(Alignment.TopStart)
+            ) {
+                Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+            }
+
+            // Bottom screen name or title
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 40.dp),
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = when (currentScreen) {
+                        "About" -> "This app promotes daily wellness with custom video wallpapers."
+                        "Version" -> "You’re on version ${version.latestVersion}"
+                        "HowTo" -> "To use the app, just tap 'Set Wallpaper' and enjoy!"
+                        else -> "$title!"
+                    },
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                        .fillMaxWidth()
+                )
+            }
         }
     }
 }
+
+@Composable
+fun DrawerItem(label: String, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+    ) {
+        Text(label, fontSize = 16.sp)
+    }
+}
+
+
+fun String.toSpacedWords(): String {
+    return replace(Regex("(?<!^)([A-Z])"), " $1")
+}
+

@@ -34,9 +34,11 @@ class VideoViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
         getVideoUseCase(deviceId).onEach { video ->
+            println(" **** im in getVideo **** $video")
             when (video) {
                 is Result.Success -> {
                     val data = video.data
+                    println("**** Video: ${video.data} ****")
                     videoManager.downloadVideoIfNeeded(
                         videoUrl = data.video ?: "starter.mp4",
                         videoName = data.name,
