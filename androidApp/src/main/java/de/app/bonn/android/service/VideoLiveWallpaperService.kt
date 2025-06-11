@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -15,6 +16,7 @@ import android.service.wallpaper.WallpaperService
 import android.view.SurfaceHolder
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
+import de.app.bonn.android.MainActivity
 import de.app.bonn.android.R
 import timber.log.Timber
 import java.io.File
@@ -119,12 +121,25 @@ class VideoLiveWallpaperService : WallpaperService() {
         }
 
         private fun createNotification(): Notification {
+            val intent = Intent(applicationContext, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                applicationContext,
+                0,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+
             return NotificationCompat.Builder(applicationContext, "wallpaper_service")
-                .setContentTitle("")
+                .setContentTitle("Bunn is here!")
+                .setContentText("Tap to see the video with audio and description")
                 .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setOngoing(true)
+                .setContentIntent(pendingIntent)
                 .build()
         }
+
 
         override fun onDestroy() {
             stopAndReleasePlayer()

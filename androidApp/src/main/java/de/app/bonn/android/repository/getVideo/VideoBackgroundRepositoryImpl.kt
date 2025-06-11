@@ -10,6 +10,7 @@ import de.app.bonn.android.repository.toVideoCached
 import de.app.bonn.android.repository.toVideoDecider
 import de.app.bonn.android.source.db.VideoLocalDataSource
 import de.app.bonn.android.source.db.model.VideoCached
+import de.app.bonn.android.worker.VideoDownloadWorker
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -39,16 +40,27 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
                 )
                 ))
             } else {
-                emit( Result.Success( VideoDecider(
+                emit(Result.Success(
+                    VideoDecider(
                     isCacheAvailable = false,
                     video = video.url,
-                    name = video.name
-                )
-                )
+                    name = video.name)
+                    )
                 )
             }
         } else {
             emit(Result.Error("Unable to fetch video"))
+        }
+    }
+
+    override suspend fun getVideoFromFireBaseNotification(videoName: String, videoUrl: String) {
+        println(" **** in the check cache $videoName   $videoUrl")
+        val cachedVideo = getCachedLastVideo(videoName)
+        println(" **** cached video: $cachedVideo ****")
+        if (cachedVideo is Result.Success) {
+            _newVideo.emit(cachedVideo.data.toVideoDecider())
+        } else {
+            _newVideo.emit(VideoDecider(false, videoUrl, videoName))
         }
     }
     override suspend fun getRemoteLastVideo(deviceId: String): Result<Video> = withContext(ioDispatcher) {
@@ -89,7 +101,7 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
     }
 
     private fun doesVideoExist(storagePath: String, videoName: String): Boolean {
-        val file = File(storagePath, "$videoName")
+        val file = File(storagePath)
         return file.exists()
     }
 

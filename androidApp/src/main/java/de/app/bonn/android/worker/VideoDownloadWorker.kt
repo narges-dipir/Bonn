@@ -67,7 +67,7 @@ class VideoDownloadWorker @AssistedInject constructor(
 
         val file = File(applicationContext.getExternalFilesDir(null), "$video_name")
 
-        if (!file.exists()) {
+      //  if (!file.exists()) {
             ensureDownloadChannel()
 
             // Set foreground immediately and maintain it
@@ -94,13 +94,13 @@ class VideoDownloadWorker @AssistedInject constructor(
             }
 
             return Result.retry()
-        } else {
-            notifyWallpaperService(video_name!!, context = applicationContext)
-            return Result.retry()
-        }
+//        } else {
+//            notifyWallpaperService(video_name!!, context = applicationContext)
+//            return Result.retry()
+//        }
     }
 
-    fun notifyWallpaperService(videoName: String, context: Context) {
+    private fun notifyWallpaperService(videoName: String, context: Context) {
         println(" **** Sending broadcast for $videoName from worker")
         val intent = Intent("UPDATE_LIVE_WALLPAPER").apply {
             setPackage("de.app.bonn.android")
@@ -110,7 +110,7 @@ class VideoDownloadWorker @AssistedInject constructor(
         context.sendBroadcast(intent)
     }
 
-    fun ensureDownloadChannel() {
+    private fun ensureDownloadChannel() {
         if (notificationManager.getNotificationChannel(channelId) == null) {
             val channel = NotificationChannel(
                 channelId,

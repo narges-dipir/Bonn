@@ -5,11 +5,15 @@ import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
 import de.app.bonn.android.di.DeviceIdProvider
 import de.app.bonn.android.di.LocalTimeProvider
+import de.app.bonn.android.manager.VideoManager
 import de.app.bonn.android.network.remote.ApiService
 import de.app.bonn.android.network.data.TokenRequest
+import de.app.bonn.android.network.data.responde.Video
+import de.app.bonn.android.repository.getVideo.VideoBackgroundRepository
 import de.app.bonn.android.worker.VideoDownloadWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -25,10 +29,18 @@ class WallpaperFirebaseMessagingService: FirebaseMessagingService() {
     @Inject
     lateinit var localTimeProvider: LocalTimeProvider
 
+    @Inject
+    lateinit var videoManager: VideoManager
+
+    @Inject
+    lateinit var videoBackgroundRepository: VideoBackgroundRepository
+
+    val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
     override fun onNewToken(token: String) {
         super.onNewToken(token)
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             try {
                 val response = apiService.registerToken(TokenRequest(token, deviceIDProvider.getDeviceId(), localTimeProvider.timeZone()))
                 if (response.isSuccessful) {
@@ -48,6 +60,10 @@ class WallpaperFirebaseMessagingService: FirebaseMessagingService() {
         println("Message received: ${message.data}")
          val videoUrl = message.data["video_url"] ?: ""
         val videoName = message.data["video_name"] ?: ""
-        VideoDownloadWorker.initiate(this, videoUrl, videoName)
+       // VideoDownloadWorker.initiate(this, videoUrl, videoName)
+        scope.launch {
+            videoBackgroundRepository.getVideoFromFireBaseNotification(videoName, videoUrl)
+        }
+
     }
 }
