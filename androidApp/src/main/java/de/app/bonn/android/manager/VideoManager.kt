@@ -29,7 +29,11 @@ class VideoManager @Inject constructor(
             updateBackGroundVideoUseCase().collect { video ->
                 println(" **** im in updateBackGroundVideoUseCase **** $video")
                 if (video.name.isNotEmpty()) {
-                    notifyWallpaperService(video.name)
+                    if (video.isCacheAvailable) {
+                        notifyWallpaperService(video.name)
+                    } else {
+                        downloadVideoIfNeeded(video.video!!, video.name, video.isCacheAvailable)
+                    }
                 }
             }
         }
