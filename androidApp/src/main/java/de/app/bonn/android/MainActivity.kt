@@ -8,14 +8,10 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,83 +21,63 @@ import de.app.bonn.android.common.IS_WALLPAPER_SET
 import de.app.bonn.android.di.DeviceIdProvider
 import de.app.bonn.android.di.SharedPreferencesHelper
 import de.app.bonn.android.navigation.Screen
-import de.app.bonn.android.network.remote.ApiService
 import de.app.bonn.android.screen.CustomizedWallpaperService
 import de.app.bonn.android.screen.DefaultScreen
 import de.app.bonn.android.screen.NotificationPermissionScreen
+import de.app.bonn.android.screen.viewmodel.MainViewModel
 import de.app.bonn.android.service.VideoLiveWallpaperService
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-private lateinit var navController: NavHostController
-//    @Inject
-//    lateinit var apiService: ApiService
 
     @Inject
     lateinit var deviceIDProvider: DeviceIdProvider
 
+    private val viewModel: MainViewModel by viewModels()
+
+    private lateinit var navController: NavHostController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         SharedPreferencesHelper.putBoolean(IS_WALLPAPER_SET, isMyLiveWallpaperActive(this))
+
         setContent {
-           navController = rememberNavController()
-            AppNavGraph(navController)
-            PermissionBasedEntryPoint(navController)
+            val context = this
+            navController = rememberNavController()
+
+            // Determine start destination before rendering anything
+            val startDestination = when {
+                SharedPreferencesHelper.getBoolean(IS_WALLPAPER_SET) -> Screen.DefaultWallpaperScreen.route
+                !isNotificationPermissionGranted(context) -> Screen.NotificationScreen.route
+                else -> Screen.WallpaperScreen.route
+            }
+
+            AppNavGraph(
+                navController = navController,
+                startDestination = startDestination,
+                deviceIDProvider = deviceIDProvider
+            )
         }
     }
 
     override fun onResume() {
         super.onResume()
-
-        if (::navController.isInitialized) {
+        if (::navController.isInitialized && viewModel.hasResumedOnce.value) {
             navigateBasedOnPermission(this, navController)
         }
-    }
-
-    @Composable
-    fun PermissionBasedEntryPoint(navController: NavHostController) {
-        val context = LocalContext.current
-        val currentContext by rememberUpdatedState(context)
-        println(" *** the result is ${isMyLiveWallpaperActive(currentContext)}")
-        LaunchedEffect(Unit) {
-            val destination = if(SharedPreferencesHelper.getBoolean(IS_WALLPAPER_SET)) {
-                Screen.DefaultWallpaperScreen.route
-            } else if (!isNotificationPermissionGranted(currentContext)) {
-                Screen.NotificationScreen.route
-            } else {
-                Screen.WallpaperScreen.route
-            }
-//            val destination = if (!isNotificationPermissionGranted(currentContext)) {
-//                Screen.NotificationScreen.route
-//            } else if (!sharedPreferencesHelper.getBoolean(IS_WALLPAPER_SET)) {
-//                Screen.WallpaperScreen.route
-//            } else {
-//                Screen.DefaultWallpaperScreen.route
-//            }
-
-            if (navController.currentDestination?.route != destination) {
-                navController.navigate(destination) {
-                    popUpTo(0) // optional: clears stack
-                    launchSingleTop = true
-                }
-            }
-        }
-
+        viewModel.hasResumedOnce.value = true
     }
 
     private fun navigateBasedOnPermission(
         context: Context,
         navController: NavHostController
     ) {
-        val destination = if(SharedPreferencesHelper.getBoolean(IS_WALLPAPER_SET)) {
-            Screen.DefaultWallpaperScreen.route
-        } else if (!isNotificationPermissionGranted(context)) {
-            Screen.NotificationScreen.route
-        } else {
-            Screen.WallpaperScreen.route
+        val destination = when {
+            SharedPreferencesHelper.getBoolean(IS_WALLPAPER_SET) -> Screen.DefaultWallpaperScreen.route
+            !isNotificationPermissionGranted(context) -> Screen.NotificationScreen.route
+            else -> Screen.WallpaperScreen.route
         }
 
         if (navController.currentDestination?.route != destination) {
@@ -113,8 +89,12 @@ private lateinit var navController: NavHostController
     }
 
     @Composable
-    fun AppNavGraph(navController: NavHostController) {
-        NavHost(navController = navController, startDestination = "notification_screen") {
+    fun AppNavGraph(
+        navController: NavHostController,
+        startDestination: String,
+        deviceIDProvider: DeviceIdProvider
+    ) {
+        NavHost(navController = navController, startDestination = startDestination) {
             composable(Screen.NotificationScreen.route) {
                 NotificationPermissionScreen(deviceIDProvider = deviceIDProvider)
             }
@@ -124,22 +104,20 @@ private lateinit var navController: NavHostController
             composable(Screen.DefaultWallpaperScreen.route) {
                 DefaultScreen()
             }
-
         }
     }
-
 
     private fun isNotificationPermissionGranted(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
-                    context,
-                    android.Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
         } else {
             true
         }
-
     }
+
     private fun isMyLiveWallpaperActive(context: Context): Boolean {
         val wallpaperManager = WallpaperManager.getInstance(context)
         val currentWallpaper = wallpaperManager.wallpaperInfo
