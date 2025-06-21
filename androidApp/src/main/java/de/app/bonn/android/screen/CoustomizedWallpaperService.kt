@@ -5,9 +5,12 @@ import android.content.ComponentName
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
@@ -18,9 +21,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.app.bonn.android.MainActivity
+import de.app.bonn.android.R
 import de.app.bonn.android.di.DeviceIdProvider
 import de.app.bonn.android.material.DarkGrassGreen
 import de.app.bonn.android.material.DarkerYellow
@@ -63,13 +70,29 @@ fun CustomizedWallpaperService(
             launcher.launch(intent)
         }
     }
-
-    GradientAlertDialog(
-        onDismissRequest = null,
-        onConfirmation = { shouldLaunchWallpaperIntent.value = true },
-        dialogTitle = "Permission Required",
-        dialogText = "Set the first wallpaper true to enable our service!",
-        icon = Icons.Default.Check,
-        colors = listOf(DarkGrassGreen, GrassGreen)
-    )
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.cart_for_wallpaper), // replace with your image resource
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            GradientAlertDialog(
+                onDismissRequest = null,
+                onConfirmation = { shouldLaunchWallpaperIntent.value = true },
+                dialogTitle = "Permission Required",
+                dialogText = "Set the first wallpaper true to enable our service!",
+                icon = Icons.Default.Check,
+                colors = listOf(DarkGrassGreen, GrassGreen)
+            )
+        }
+    }
 }

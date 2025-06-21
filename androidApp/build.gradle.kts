@@ -75,6 +75,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.retrofit2.converter.scalars)
+    implementation(libs.play.services.ads)
 }
 
 kapt {

@@ -4,6 +4,7 @@ import de.app.bonn.android.network.data.TokenRequest
 import de.app.bonn.android.network.data.VersionRequest
 import de.app.bonn.android.network.data.responde.VersionResponse
 import de.app.bonn.android.network.data.responde.VideoResponse
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -19,4 +20,8 @@ interface ApiService {
 
     @POST("api/version/check")
     suspend fun checkVersion(@Body request: VersionRequest) : Response<VersionResponse>
+
+    @GET("api/info/terms")
+    suspend fun getTermsOfService(): Response<ResponseBody>
+
 }

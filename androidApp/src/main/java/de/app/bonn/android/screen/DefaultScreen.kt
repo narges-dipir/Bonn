@@ -1,6 +1,8 @@
 package de.app.bonn.android.screen
 
+import android.app.Activity
 import android.net.Uri
+import android.util.Log
 import android.widget.VideoView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -48,25 +50,44 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import de.app.bonn.android.common.LAST_VIDEO_NAME
 import de.app.bonn.android.di.SharedPreferencesHelper
 import de.app.bonn.android.material.DarkGrassGreen
 import de.app.bonn.android.material.LightBeige
+import de.app.bonn.android.material.SchickBlack
+import de.app.bonn.android.navigation.Screen
 import de.app.bonn.android.screen.viewmodel.VersionViewModel
 import de.app.bonn.android.widget.VersionAlertDialog
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 
 @Composable
 fun DefaultScreen(
+    navController: NavHostController,
     versionViewModel: VersionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val showInterstitial = rememberInterstitialAd (adUnitId = "ca-app-pub-3940256099942544/1033173712") // ca-app-pub-1101142563208132/8385802577
+    {
+        println("Interstitial ad dismissed.")
+    }
+
     var initialized by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         SharedPreferencesHelper.ensureInitialized(context)
         initialized = true
         versionViewModel.getLatestVersion()
+
+        println("showing the admob now")
+        showInterstitial()
     }
     if (!initialized) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -103,9 +124,9 @@ fun DefaultScreen(
                 Text("Menu", fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.padding(8.dp))
                 Spacer(modifier = Modifier.height(16.dp))
 
-                DrawerItem("About the App") { currentScreen = "About"; scope.launch { drawerState.close() } }
-                DrawerItem("Latest Version") { currentScreen = "Version"; scope.launch { drawerState.close() } }
-                DrawerItem("How to Use the App") { currentScreen = "HowTo" ; scope.launch { drawerState.close() } }
+                DrawerItem("About the App") { currentScreen = "About"; scope.launch { navController.navigate(Screen.AboutScreen.route)} }
+                DrawerItem("Latest Version") { currentScreen = "Version"; scope.launch { navController.navigate(Screen.VersionScreen.route) } }
+                DrawerItem("How to Use the App") { currentScreen = "HowTo" ; scope.launch { navController.navigate(Screen.HowToScreen.route) } }
             }
         }
     ) {
@@ -169,12 +190,81 @@ fun DrawerItem(label: String, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
     ) {
-        Text(label, fontSize = 16.sp)
+        Text(label,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = SchickBlack
+            )
     }
 }
 
 
 fun String.toSpacedWords(): String {
-    return replace(Regex("(?<!^)([A-Z])"), " $1")
+    val cleaned = removeSuffix(".mp4")
+    return cleaned.replace(Regex("(?<!^)([A-Z])"), " $1")
 }
 
+
+@Composable
+fun rememberInterstitialAd(
+    adUnitId: String = "ca-app-pub-3940256099942544/1033173712",
+    onAdClosed: () -> Unit = {}
+): () -> Unit {
+    val context = LocalContext.current
+    var interstitialAd by remember { mutableStateOf<InterstitialAd?>(null) }
+    var shouldShowAd by remember { mutableStateOf(false) }
+
+    // Load the ad
+    LaunchedEffect(Unit) {
+        val adRequest = AdRequest.Builder().build()
+        InterstitialAd.load(context, adUnitId, adRequest, object : InterstitialAdLoadCallback() {
+            override fun onAdLoaded(ad: InterstitialAd) {
+                Timber.tag("AdMob").d("✅ Interstitial ad loaded")
+                interstitialAd = ad
+
+                // If the user already requested to show it, now we can
+                if (shouldShowAd) {
+                    showAd(context as? Activity, interstitialAd, onAdClosed)
+                    interstitialAd = null
+                    shouldShowAd = false
+                }
+            }
+
+            override fun onAdFailedToLoad(adError: LoadAdError) {
+                Timber.tag("AdMob").e("❌ Failed to load interstitial ad: ${adError.message}")
+                interstitialAd = null
+            }
+        })
+    }
+
+    // Return a trigger function
+    return {
+        val activity = context as? Activity
+        if (interstitialAd != null && activity != null) {
+            showAd(activity, interstitialAd, onAdClosed)
+            interstitialAd = null
+        } else {
+            Timber.tag("AdMob").d("⏳ Ad not ready yet, will show later")
+            shouldShowAd = true
+        }
+    }
+}
+
+private fun showAd(activity: Activity?, ad: InterstitialAd?, onAdClosed: () -> Unit) {
+    ad?.fullScreenContentCallback = object : com.google.android.gms.ads.FullScreenContentCallback() {
+        override fun onAdShowedFullScreenContent() {
+            Timber.tag("AdMob").d("✅ Interstitial ad showed")
+        }
+
+        override fun onAdDismissedFullScreenContent() {
+            Timber.tag("AdMob").d("👋 Interstitial ad dismissed")
+            onAdClosed()
+        }
+
+        override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
+            Timber.tag("AdMob").e("❌ Failed to show ad: ${adError.message}")
+        }
+    }
+
+    ad?.show(activity!!)
+}

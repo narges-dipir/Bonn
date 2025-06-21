@@ -77,6 +77,9 @@
             android:authorities="${applicationId}.androidx-startup"
             tools:node="remove" />
 
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-1101142563208132~9992729411"/>
 
     </application>
 </manifest> 

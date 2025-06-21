@@ -105,7 +105,7 @@ fun GradientAlertDialog(
                 modifier = Modifier
                     .background(
                         brush = Brush.verticalGradient(
-                            colors = colors //   listOf(Color(0xFF89F7FE), Color(0xFF66A6FF))
+                            colors = colors.map { it.copy(alpha = 0.3f) } //   listOf(Color(0xFF89F7FE), Color(0xFF66A6FF))
                         ),
                         shape = RoundedCornerShape(16.dp)
                     )
@@ -139,7 +139,7 @@ fun GradientAlertDialog(
                 }
             }
 
-            // Floating icon
+
             Icon(
                 imageVector = icon,
                 contentDescription = "Dialog Icon",
@@ -148,7 +148,7 @@ fun GradientAlertDialog(
                     .align(Alignment.TopCenter)
                     .offset(y = (-27).dp)
                     .background(
-                        color = colors.last(),
+                        color = colors.last().copy(alpha = 0.3f),
                         shape = RoundedCornerShape(50)
                     )
                     .padding(12.dp)

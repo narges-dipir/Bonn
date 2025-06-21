@@ -47,6 +47,7 @@ class VideoLiveWallpaperService : WallpaperService() {
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onCreate() {
         super.onCreate()
+        startForegroundService()
         val filter = IntentFilter("UPDATE_LIVE_WALLPAPER")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(wallpaperUpdateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
@@ -62,7 +63,7 @@ class VideoLiveWallpaperService : WallpaperService() {
         override fun onSurfaceCreated(holder: SurfaceHolder) {
             super.onSurfaceCreated(holder)
             surfaceHolder = holder
-            startForegroundService()
+           // startForegroundService()
             playVideo(video_name)
         }
 
@@ -109,41 +110,48 @@ class VideoLiveWallpaperService : WallpaperService() {
             mediaPlayer = null
         }
 
-        private fun startForegroundService() {
-            val notification = createNotification()
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            val channel = NotificationChannel(
-                "wallpaper_service", "Wallpaper Service",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            notificationManager.createNotificationChannel(channel)
-            startForeground(1, notification)
-        }
 
-        private fun createNotification(): Notification {
-            val intent = Intent(applicationContext, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            val pendingIntent = PendingIntent.getActivity(
-                applicationContext,
-                0,
-                intent,
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            )
-
-            return NotificationCompat.Builder(applicationContext, "wallpaper_service")
-                .setContentTitle("Bunn is here!")
-                .setContentText("Tap to see the video with audio and description")
-                .setSmallIcon(R.mipmap.ic_launcher_round)
-                .setOngoing(true)
-                .setContentIntent(pendingIntent)
-                .build()
-        }
 
 
         override fun onDestroy() {
             stopAndReleasePlayer()
             super.onDestroy()
         }
+    }
+
+    private fun startForegroundService() {
+        val notification = createNotification()
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        val channel = NotificationChannel(
+            "wallpaper_service", "Wallpaper Service",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            setShowBadge(false)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        }
+        notificationManager.createNotificationChannel(channel)
+        startForeground(1, notification)
+    }
+
+    private fun createNotification(): Notification {
+        val intent = Intent(applicationContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            applicationContext,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        return NotificationCompat.Builder(applicationContext, "wallpaper_service")
+            .setContentTitle("Bunn is here!")
+            .setContentText("Tap to see the video with audio and description")
+            .setSmallIcon(R.mipmap.ic_launcher_round)
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setContentIntent(pendingIntent)
+            .build()
     }
 }
