@@ -82,11 +82,9 @@ class VideoDownloadWorker @AssistedInject constructor(
             }
             setForeground(initialForegroundInfo)
 
-            println("*** Starting download for $video_name ***")
             val success = downloadVideo(videoUrl, file) { progress ->
                 notify(notificationId, buildDownloadNotification(progress))
             }
-            println(" *** Download completed for $video_name ${file.absolutePath} ***")
 
             if (success) {
                 updateCachedLastVideoUseCase(VideoDecider(name = video_name!!, video = file.absolutePath, isCacheAvailable = true))
@@ -101,7 +99,6 @@ class VideoDownloadWorker @AssistedInject constructor(
     }
 
     private fun notifyWallpaperService(videoName: String, context: Context) {
-        println(" **** Sending broadcast for $videoName from worker")
         val intent = Intent("UPDATE_LIVE_WALLPAPER").apply {
             setPackage("de.app.bonn.android")
             putExtra("video_name", videoName)

@@ -27,7 +27,6 @@ class VideoManager @Inject constructor(
     private fun startObservingNewVideo() {
         scope.launch {
             updateBackGroundVideoUseCase().collect { video ->
-                println(" **** im in updateBackGroundVideoUseCase **** $video")
                 if (video.name.isNotEmpty()) {
                     if (video.isCacheAvailable) {
                         notifyWallpaperService(video.name)
@@ -39,7 +38,6 @@ class VideoManager @Inject constructor(
         }
     }
     private fun notifyWallpaperService(videoName: String) {
-        println(" **** Sending broadcast for $videoName from VideoManager ****")
         val intent = Intent("UPDATE_LIVE_WALLPAPER").apply {
             setPackage("de.app.bonn.android")
             putExtra("video_name", videoName)

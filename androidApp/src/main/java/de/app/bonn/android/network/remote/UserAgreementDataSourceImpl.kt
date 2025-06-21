@@ -13,7 +13,6 @@ class UserAgreementDataSourceImpl (
         try {
             withContext(ioDispatcher) {
                 val response = apiService.getTermsOfService()
-                println("** UserAgreement response: ${response.body()?.string()}")
                 val body = response.body()
                 if (response.isSuccessful && body != null) {
                     Result.Success(body.string())

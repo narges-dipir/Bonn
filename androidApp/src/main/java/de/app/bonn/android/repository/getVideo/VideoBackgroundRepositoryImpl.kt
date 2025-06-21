@@ -54,9 +54,7 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getVideoFromFireBaseNotification(videoName: String, videoUrl: String) {
-        println(" **** in the check cache $videoName   $videoUrl")
         val cachedVideo = getCachedLastVideo(videoName)
-        println(" **** cached video: $cachedVideo ****")
         if (cachedVideo is Result.Success) {
             _newVideo.emit(cachedVideo.data.toVideoDecider())
         } else {
@@ -89,7 +87,6 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateCachedLastVideo(videoDecider: VideoDecider) {
-        println(" **** Updating cached last video: ${videoDecider.name} ****")
         videoLocalDataSource.updateVideo(videoDecider.toVideoCached())
         val video = videoLocalDataSource.getLastCachedVideo(videoDecider.name)
         _newVideo.emit(video.toVideoDecider())

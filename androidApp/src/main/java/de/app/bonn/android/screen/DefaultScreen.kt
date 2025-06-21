@@ -77,7 +77,7 @@ fun DefaultScreen(
     val context = LocalContext.current
     val showInterstitial = rememberInterstitialAd (adUnitId = "ca-app-pub-3940256099942544/1033173712") // ca-app-pub-1101142563208132/8385802577
     {
-        println("Interstitial ad dismissed.")
+        Timber.i("Interstitial ad dismissed.")
     }
 
     var initialized by remember { mutableStateOf(false) }
@@ -86,7 +86,6 @@ fun DefaultScreen(
         initialized = true
         versionViewModel.getLatestVersion()
 
-        println("showing the admob now")
         showInterstitial()
     }
     if (!initialized) {
@@ -114,7 +113,7 @@ fun DefaultScreen(
     VersionAlertDialog(
         version = version,
         backgroundColor = Color(0xFFFAFAFA),
-        onDismiss = { println("ok!") }
+        onDismiss = { Timber.i("ok!") }
     )
 
     ModalNavigationDrawer(

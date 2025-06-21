@@ -57,7 +57,6 @@ class WallpaperFirebaseMessagingService: FirebaseMessagingService() {
         super.onMessageReceived(message)
         // Handle the received message as needed
         Timber.i("Message received: $message")
-        println("Message received: ${message.data}")
          val videoUrl = message.data["video_url"] ?: ""
         val videoName = message.data["video_name"] ?: ""
        // VideoDownloadWorker.initiate(this, videoUrl, videoName)
