@@ -75,7 +75,7 @@ fun DefaultScreen(
     versionViewModel: VersionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val showInterstitial = rememberInterstitialAd (adUnitId = "ca-app-pub-3940256099942544/1033173712") // ca-app-pub-1101142563208132/8385802577
+    val showInterstitial = rememberInterstitialAd (adUnitId = "ca-app-pub-1101142563208132/8385802577") //  ca-app-pub-3940256099942544/1033173712
     {
         Timber.i("Interstitial ad dismissed.")
     }

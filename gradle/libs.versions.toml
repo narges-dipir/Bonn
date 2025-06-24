@@ -10,7 +10,12 @@ compose = "1.5.4"
 compose-material3 = "1.1.2"
 androidx-activityCompose = "1.8.0"
 loggingInterceptor = "4.9.3"
-media3Exoplayer = "1.5.1"
+media2Player = "1.3.0"
+media3Effect = "1.7.1"
+media3Exoplayer = "1.7.1"
+media3Session = "1.7.1"
+media3Transformer = "1.7.1"
+media3Ui = "1.7.1"
 navigationCompose = "2.8.9"
 okhttp = "4.12.0"
 playServicesAds = "24.4.0"
@@ -28,6 +33,11 @@ hilt-navigation-compose = "1.2.0"
 [libraries]
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltCompiler" }
+androidx-media2-player = { module = "androidx.media2:media2-player", version.ref = "media2Player" }
+androidx-media3-effect = { module = "androidx.media3:media3-effect", version.ref = "media3Effect" }
+androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3Session" }
+androidx-media3-transformer = { module = "androidx.media3:media3-transformer", version.ref = "media3Transformer" }
+androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Ui" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
@@ -57,6 +67,7 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
+ffmpeg-kit-full = { group = "com.arthenica", name = "ffmpeg-kit-full", version = "5.1.LTS" }
 
 
 [plugins]

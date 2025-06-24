@@ -2,6 +2,7 @@ package de.app.bonn.android.screen
 
 import android.app.WallpaperManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,6 +37,7 @@ import de.app.bonn.android.material.Orange
 import de.app.bonn.android.screen.viewmodel.VideoViewModel
 import de.app.bonn.android.service.VideoLiveWallpaperService
 import de.app.bonn.android.widget.GradientAlertDialog
+import kotlinx.coroutines.delay
 
 @Composable
 fun CustomizedWallpaperService(
@@ -59,8 +61,8 @@ fun CustomizedWallpaperService(
 
     val shouldLaunchWallpaperIntent = remember { mutableStateOf(false) }
 
-    if (shouldLaunchWallpaperIntent.value) {
-        LaunchedEffect(Unit) {
+    LaunchedEffect(shouldLaunchWallpaperIntent.value) {
+        if (shouldLaunchWallpaperIntent.value) {
             val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
                 putExtra(
                     WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
@@ -68,8 +70,20 @@ fun CustomizedWallpaperService(
                 )
             }
             launcher.launch(intent)
+
+            if (waitForWallpaperToBeSet(context)) {
+                val mainIntent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+                println("*** im here")
+                context.startActivity(mainIntent)
+            }
         }
     }
+
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -96,3 +110,17 @@ fun CustomizedWallpaperService(
         }
     }
 }
+
+suspend fun waitForWallpaperToBeSet(context: Context): Boolean {
+    val wm = WallpaperManager.getInstance(context)
+    repeat(10) {
+        val info = wm.wallpaperInfo
+        println("*** Checking wallpaper info: ${info.toString()}")
+        if (info?.serviceName?.endsWith("VideoLiveWallpaperService") == true) {
+            return true
+        }
+        delay(1000L)
+    }
+    return false
+}
+
