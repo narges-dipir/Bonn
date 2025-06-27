@@ -129,6 +129,10 @@ fun DefaultScreen(
                 DrawerItem("About the App") { currentScreen = "About"; scope.launch { navController.navigate(Screen.AboutScreen.route)} }
                 DrawerItem("Latest Version") { currentScreen = "Version"; scope.launch { navController.navigate(Screen.VersionScreen.route) } }
                 DrawerItem("How to Use the App") { currentScreen = "HowTo" ; scope.launch { navController.navigate(Screen.HowToScreen.route) } }
+                DrawerItem("Relaunch the wallpaper wizard") { currentScreen= "Relaunch"; scope.launch {
+                    val flagFile = File(context.filesDir, "wallpaper_active.flag")
+                    if (flagFile.exists()) { flagFile.delete() }
+                    navController.navigate(Screen.WallpaperScreen.route) } }
             }
         }
     ) {

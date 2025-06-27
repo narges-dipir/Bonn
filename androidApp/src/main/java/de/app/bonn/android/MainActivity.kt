@@ -178,6 +178,7 @@ class MainActivity : ComponentActivity() {
     private fun isMyLiveWallpaperActive(context: Context): Boolean {
         val flagFile = File(context.filesDir, "wallpaper_active.flag")
         val isActive = flagFile.exists()
+        println("*** flag file exists: $isActive")
         val wallpaperManager = WallpaperManager.getInstance(context)
         val currentWallpaper = wallpaperManager.wallpaperInfo
         val myComponent = ComponentName(context, VideoLiveWallpaperService::class.java)
