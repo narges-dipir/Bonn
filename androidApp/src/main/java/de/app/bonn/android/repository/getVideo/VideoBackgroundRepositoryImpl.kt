@@ -1,7 +1,9 @@
 package de.app.bonn.android.repository.getVideo
 
 import de.app.bonn.android.common.Result
+import de.app.bonn.android.common.VIDEO_URL
 import de.app.bonn.android.di.IoDispatcher
+import de.app.bonn.android.di.SharedPreferencesHelper
 import de.app.bonn.android.network.data.responde.Video
 import de.app.bonn.android.network.data.responde.VideoDecider
 import de.app.bonn.android.network.remote.VideoNetworkDataSource
@@ -36,14 +38,17 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
                 emit(Result.Success( VideoDecider(
                     isCacheAvailable = true,
                     video = video.name,
+                    silentUrl = video.silentUrl,
                     name = video.name
                 )
                 ))
             } else {
+                SharedPreferencesHelper.putString(VIDEO_URL, video.url ?: "starter.mp4")
                 emit(Result.Success(
                     VideoDecider(
                     isCacheAvailable = false,
                     video = video.url,
+                    silentUrl = video.silentUrl,
                     name = video.name)
                     )
                 )
@@ -53,12 +58,12 @@ class VideoBackgroundRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getVideoFromFireBaseNotification(videoName: String, videoUrl: String) {
+    override suspend fun getVideoFromFireBaseNotification(videoName: String, videoUrl: String, silentUrl: String) {
         val cachedVideo = getCachedLastVideo(videoName)
         if (cachedVideo is Result.Success) {
             _newVideo.emit(cachedVideo.data.toVideoDecider())
         } else {
-            _newVideo.emit(VideoDecider(false, videoUrl, videoName))
+            _newVideo.emit(VideoDecider(false, videoUrl, silentUrl ,videoName))
         }
     }
     override suspend fun getRemoteLastVideo(deviceId: String): Result<Video> = withContext(ioDispatcher) {

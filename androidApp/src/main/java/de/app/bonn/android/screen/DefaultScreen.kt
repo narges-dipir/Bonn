@@ -58,6 +58,7 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import de.app.bonn.android.common.LAST_VIDEO_NAME
+import de.app.bonn.android.common.VIDEO_URL
 import de.app.bonn.android.di.SharedPreferencesHelper
 import de.app.bonn.android.material.DarkGrassGreen
 import de.app.bonn.android.material.LightBeige
@@ -98,7 +99,9 @@ fun DefaultScreen(
     val videoName by SharedPreferencesHelper
         .getStringFlow(LAST_VIDEO_NAME)
         .collectAsState()
+    val videoUrl by SharedPreferencesHelper.getStringFlow(VIDEO_URL).collectAsState()
 
+    println("*** the vudeo name is: $videoUrl")
     val file = File(context.getExternalFilesDir(null), "$videoName")
     val title = videoName?.toSpacedWords() ?: "Stay Healthy!"
 
@@ -134,7 +137,7 @@ fun DefaultScreen(
                 modifier = Modifier.fillMaxSize(),
                 factory = {
                     VideoView(it).apply {
-                        setVideoURI(file.toUri())
+                        setVideoURI(videoUrl?.toUri())
                         setOnPreparedListener { mediaPlayer ->
                             mediaPlayer.isLooping = true
                             mediaPlayer.setVolume(1f, 1f)

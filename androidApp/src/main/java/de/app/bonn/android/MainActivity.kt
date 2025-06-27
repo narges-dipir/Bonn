@@ -51,6 +51,7 @@ import de.app.bonn.android.screen.VersionScreen
 import de.app.bonn.android.screen.viewmodel.MainViewModel
 import de.app.bonn.android.service.VideoLiveWallpaperService
 import de.app.bonn.android.widget.UserAgreementDialog
+import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -175,10 +176,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun isMyLiveWallpaperActive(context: Context): Boolean {
+        val flagFile = File(context.filesDir, "wallpaper_active.flag")
+        val isActive = flagFile.exists()
         val wallpaperManager = WallpaperManager.getInstance(context)
         val currentWallpaper = wallpaperManager.wallpaperInfo
         val myComponent = ComponentName(context, VideoLiveWallpaperService::class.java)
-        return currentWallpaper?.component == myComponent
+        val serviceActive = currentWallpaper?.component == myComponent
+        return (serviceActive || isActive)
     }
 }
 

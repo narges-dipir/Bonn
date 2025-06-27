@@ -10,6 +10,7 @@ fun VideoResponse.toVideo(): Video {
         id = id,
         name = name,
         url = url,
+        silentUrl = silentUrl,
         uploadedAt = uploadedAt
     )
 }

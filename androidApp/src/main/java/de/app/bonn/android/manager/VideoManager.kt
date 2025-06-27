@@ -31,7 +31,7 @@ class VideoManager @Inject constructor(
                     if (video.isCacheAvailable) {
                         notifyWallpaperService(video.name)
                     } else {
-                        downloadVideoIfNeeded(video.video!!, video.name, video.isCacheAvailable)
+                        downloadVideoIfNeeded(video.silentUrl!!, video.name, video.isCacheAvailable)
                     }
                 }
             }

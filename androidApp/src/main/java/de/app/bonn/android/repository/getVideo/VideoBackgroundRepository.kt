@@ -13,5 +13,5 @@ interface VideoBackgroundRepository {
  suspend fun updateCachedLastVideo(videoDecider: VideoDecider)
  fun updateBackGroundVideo(videoName: String) : Flow<Result<VideoDecider>>
  val newVideo: Flow<VideoDecider>
- suspend fun getVideoFromFireBaseNotification(videoName: String, videoUrl: String)
+ suspend fun getVideoFromFireBaseNotification(videoName: String, videoUrl: String, silentUrl: String)
 }

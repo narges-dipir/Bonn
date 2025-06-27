@@ -14,6 +14,8 @@ import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.qualifiers.ApplicationContext
 import de.app.bonn.android.common.Result
+import de.app.bonn.android.common.VIDEO_URL
+import de.app.bonn.android.di.SharedPreferencesHelper
 import de.app.bonn.android.domain.video.UpdateBackGroundVideoUseCase
 import de.app.bonn.android.manager.VideoManager
 import de.app.bonn.android.worker.VideoDownloadWorker
@@ -38,7 +40,7 @@ class VideoViewModel @Inject constructor(
                 is Result.Success -> {
                     val data = video.data
                     videoManager.downloadVideoIfNeeded(
-                        videoUrl = data.video ?: "starter.mp4",
+                        videoUrl = data.silentUrl ?: "starter.mp4",
                         videoName = data.name,
                         isCached = data.isCacheAvailable
                     )

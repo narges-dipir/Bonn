@@ -5,10 +5,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
@@ -26,7 +23,6 @@ class VideoLiveWallpaperService : WallpaperService() {
 
     private var videoEngine: VideoEngine? = null
     private var video_name = "starter"
-
 
     override fun onCreateEngine(): Engine {
         videoEngine = VideoEngine()
@@ -59,26 +55,38 @@ class VideoLiveWallpaperService : WallpaperService() {
     private inner class VideoEngine : Engine() {
         private var mediaPlayer: MediaPlayer? = null
         private lateinit var surfaceHolder: SurfaceHolder
+        private var isPrepared = false
+        private var shouldBePlaying = false
 
         override fun onSurfaceCreated(holder: SurfaceHolder) {
             super.onSurfaceCreated(holder)
             surfaceHolder = holder
-           // startForegroundService()
             playVideo(video_name)
+
+            // Flag to signal this wallpaper is active
+            val flagFile = File(applicationContext.filesDir, "wallpaper_active.flag")
+            flagFile.writeText("1")
         }
 
         override fun onVisibilityChanged(visible: Boolean) {
             super.onVisibilityChanged(visible)
-            if (visible) {
-                mediaPlayer?.start()
-            } else {
-                mediaPlayer?.pause()
+            shouldBePlaying = visible
+            if (isPrepared) {
+                try {
+                    if (visible) {
+                        mediaPlayer?.start()
+                    } else {
+                        mediaPlayer?.pause()
+                    }
+                } catch (e: IllegalStateException) {
+                    Timber.e(e, "MediaPlayer visibility transition error")
+                }
             }
         }
 
         override fun onSurfaceDestroyed(holder: SurfaceHolder) {
             super.onSurfaceDestroyed(holder)
-            mediaPlayer?.pause()
+            stopAndReleasePlayer()
         }
 
         fun updateVideo() {
@@ -87,34 +95,77 @@ class VideoLiveWallpaperService : WallpaperService() {
         }
 
         private fun playVideo(videoName: String) {
-            val file = File(applicationContext.getExternalFilesDir(null), "$videoName")
+            val file = File(applicationContext.getExternalFilesDir(null), videoName)
             if (!file.exists()) {
-                Timber.tag("WallpaperService").e("Video file not found: $videoName")
+                Timber.e("Video file not found: $videoName")
                 return
             }
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(applicationContext, Uri.fromFile(file))
-                setSurface(surfaceHolder.surface)
-                isLooping = true
-                setOnPreparedListener { it.start() }
-                setVolume(0f, 0f)
-                prepareAsync()
+
+            if (!::surfaceHolder.isInitialized || !surfaceHolder.surface.isValid) {
+                Timber.e("Surface is not ready")
+                return
+            }
+
+            stopAndReleasePlayer()
+            isPrepared = false
+
+            try {
+                mediaPlayer = MediaPlayer().apply {
+                    setSurface(surfaceHolder.surface)
+                    setDataSource(applicationContext, Uri.fromFile(file))
+                    isLooping = true
+                    setVolume(0f, 0f)
+
+                    setOnPreparedListener {
+                        isPrepared = true
+                        Timber.d("MediaPlayer prepared")
+                        if (shouldBePlaying) {
+                            try {
+                                start()
+                            } catch (e: IllegalStateException) {
+                                Timber.e(e, "Failed to start after prepared")
+                            }
+                        }
+                    }
+
+                    setOnErrorListener { _, what, extra ->
+                        Timber.e("MediaPlayer error: what=$what, extra=$extra")
+                        true
+                    }
+
+                    prepareAsync()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error preparing MediaPlayer")
             }
         }
 
         private fun stopAndReleasePlayer() {
-            mediaPlayer?.apply {
-                stop()
-                release()
+            try {
+                mediaPlayer?.setOnPreparedListener(null)
+                mediaPlayer?.setOnErrorListener(null)
+                mediaPlayer?.let {
+                    try {
+                        it.stop()
+                    } catch (e: IllegalStateException) {
+                        Timber.e(e, "stop() failed, wrong state?")
+                    }
+                    it.release()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "release() failed")
+            } finally {
+                mediaPlayer = null
+                isPrepared = false
             }
-            mediaPlayer = null
         }
-
-
-
 
         override fun onDestroy() {
             stopAndReleasePlayer()
+            val flagFile = File(applicationContext.filesDir, "wallpaper_active.flag")
+            if (flagFile.exists()) {
+                flagFile.delete()
+            }
             super.onDestroy()
         }
     }

@@ -3,8 +3,11 @@ package de.app.bonn.android.firebase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
+import de.app.bonn.android.common.LAST_VIDEO_NAME
+import de.app.bonn.android.common.VIDEO_URL
 import de.app.bonn.android.di.DeviceIdProvider
 import de.app.bonn.android.di.LocalTimeProvider
+import de.app.bonn.android.di.SharedPreferencesHelper
 import de.app.bonn.android.manager.VideoManager
 import de.app.bonn.android.network.remote.ApiService
 import de.app.bonn.android.network.data.TokenRequest
@@ -56,12 +59,14 @@ class WallpaperFirebaseMessagingService: FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         // Handle the received message as needed
-        Timber.i("Message received: $message")
+        println("** Message received: ${message.data}")
          val videoUrl = message.data["video_url"] ?: ""
-        val videoName = message.data["video_name"] ?: ""
+         val videoName = message.data["video_name"] ?: ""
+         val silentUrl = message.data["silentUrl"] ?: ""
+        SharedPreferencesHelper.putString(VIDEO_URL, videoUrl)
        // VideoDownloadWorker.initiate(this, videoUrl, videoName)
         scope.launch {
-            videoBackgroundRepository.getVideoFromFireBaseNotification(videoName, videoUrl)
+            videoBackgroundRepository.getVideoFromFireBaseNotification(videoName, videoUrl, silentUrl)
         }
 
     }

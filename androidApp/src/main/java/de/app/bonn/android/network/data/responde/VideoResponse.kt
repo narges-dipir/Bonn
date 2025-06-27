@@ -9,6 +9,8 @@ val id: Int,
 val name: String,
 @SerializedName("url")
 val url: String,
+@SerializedName("silentUrl")
+val silentUrl: String,
 @SerializedName("uploadedAt")
 val uploadedAt: String
 )
