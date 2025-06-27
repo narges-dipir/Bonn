@@ -59,12 +59,11 @@ class WallpaperFirebaseMessagingService: FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         // Handle the received message as needed
-        println("** Message received: ${message.data}")
          val videoUrl = message.data["video_url"] ?: ""
          val videoName = message.data["video_name"] ?: ""
          val silentUrl = message.data["silentUrl"] ?: ""
         SharedPreferencesHelper.putString(VIDEO_URL, videoUrl)
-       // VideoDownloadWorker.initiate(this, videoUrl, videoName)
+       println("*** Received video URL: $videoUrl")
         scope.launch {
             videoBackgroundRepository.getVideoFromFireBaseNotification(videoName, videoUrl, silentUrl)
         }

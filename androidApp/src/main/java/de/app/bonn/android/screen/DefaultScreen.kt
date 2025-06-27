@@ -101,7 +101,6 @@ fun DefaultScreen(
         .collectAsState()
     val videoUrl by SharedPreferencesHelper.getStringFlow(VIDEO_URL).collectAsState()
 
-    println("*** the vudeo name is: $videoUrl")
     val file = File(context.getExternalFilesDir(null), "$videoName")
     val title = videoName?.toSpacedWords() ?: "Stay Healthy!"
 

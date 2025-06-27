@@ -162,11 +162,6 @@ class VideoLiveWallpaperService : WallpaperService() {
 
         override fun onDestroy() {
             stopAndReleasePlayer()
-            Timber.i("*** VideoLiveWallpaperService destroyed ***")
-//            val flagFile = File(applicationContext.filesDir, "wallpaper_active.flag")
-//            if (flagFile.exists()) {
-//                flagFile.delete()
-//            }
             super.onDestroy()
         }
     }

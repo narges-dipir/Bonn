@@ -48,7 +48,6 @@ fun CustomizedWallpaperService(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 val isActive = isMyLiveWallpaperActive(context)
-                println("WallpaperCheck onResume: isActive=$isActive")
                 if (isActive) {
                     val intent = Intent(context, MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or
@@ -116,9 +115,5 @@ fun CustomizedWallpaperService(
 private fun isMyLiveWallpaperActive(context: Context): Boolean {
     val flagFile = File(context.filesDir, "wallpaper_active.flag")
     val isActive = flagFile.exists()
-    val wallpaperManager = WallpaperManager.getInstance(context)
-    val currentWallpaper = wallpaperManager.wallpaperInfo
-    val myComponent = ComponentName(context, VideoLiveWallpaperService::class.java)
-    val serviceActive = currentWallpaper?.component == myComponent
-    return (serviceActive || isActive)
+    return (isActive)
 }
