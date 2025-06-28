@@ -57,6 +57,7 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import de.app.bonn.android.common.IS_WALLPAPER_SET
 import de.app.bonn.android.common.LAST_VIDEO_NAME
 import de.app.bonn.android.common.VIDEO_URL
 import de.app.bonn.android.di.SharedPreferencesHelper
@@ -129,8 +130,7 @@ fun DefaultScreen(
                 DrawerItem("Latest Version") { currentScreen = "Version"; scope.launch { navController.navigate(Screen.VersionScreen.route) } }
                 DrawerItem("How to Use the App") { currentScreen = "HowTo" ; scope.launch { navController.navigate(Screen.HowToScreen.route) } }
                 DrawerItem("Relaunch the wallpaper wizard") { currentScreen= "Relaunch"; scope.launch {
-                    val flagFile = File(context.filesDir, "wallpaper_active.flag")
-                    if (flagFile.exists()) { flagFile.delete() }
+                    SharedPreferencesHelper.putString(IS_WALLPAPER_SET, "false")
                     navController.navigate(Screen.WallpaperScreen.route) } }
             }
         }

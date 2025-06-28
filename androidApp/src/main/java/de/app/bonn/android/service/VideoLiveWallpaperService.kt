@@ -162,6 +162,11 @@ class VideoLiveWallpaperService : WallpaperService() {
 
         override fun onDestroy() {
             stopAndReleasePlayer()
+            Timber.i("*** VideoLiveWallpaperService destroyed ***")
+            val flagFile = File(applicationContext.filesDir, "wallpaper_active.flag")
+            if (flagFile.exists()) {
+                flagFile.delete()
+            }
             super.onDestroy()
         }
     }
@@ -190,6 +195,9 @@ class VideoLiveWallpaperService : WallpaperService() {
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+        }
 
         return NotificationCompat.Builder(applicationContext, "wallpaper_service")
             .setContentTitle("Bunn is here!")
