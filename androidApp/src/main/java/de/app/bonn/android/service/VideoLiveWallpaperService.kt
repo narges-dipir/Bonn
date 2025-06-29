@@ -1,14 +1,13 @@
 package de.app.bonn.android.service
 
 import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.*
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.service.wallpaper.WallpaperService
 import android.view.SurfaceHolder
 import androidx.core.app.NotificationCompat
@@ -22,7 +21,7 @@ import java.io.File
 class VideoLiveWallpaperService : WallpaperService() {
 
     private var videoEngine: VideoEngine? = null
-    private var video_name = "starter"
+    private var videoName = "starter"
 
     override fun onCreateEngine(): Engine {
         videoEngine = VideoEngine()
@@ -32,9 +31,8 @@ class VideoLiveWallpaperService : WallpaperService() {
     private val wallpaperUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "UPDATE_LIVE_WALLPAPER") {
-                video_name = intent.getStringExtra("video_name") ?: "starter"
-                Timber.i("Video name updated: $video_name")
-                Timber.tag("WallpaperService").d("Updating live wallpaper video...")
+                videoName = intent.getStringExtra("video_name") ?: "starter"
+                Timber.i("Video name updated: $videoName")
                 videoEngine?.updateVideo()
             }
         }
@@ -44,6 +42,7 @@ class VideoLiveWallpaperService : WallpaperService() {
     override fun onCreate() {
         super.onCreate()
         startForegroundService()
+
         val filter = IntentFilter("UPDATE_LIVE_WALLPAPER")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(wallpaperUpdateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
@@ -54,24 +53,22 @@ class VideoLiveWallpaperService : WallpaperService() {
 
     private inner class VideoEngine : Engine() {
         private var mediaPlayer: MediaPlayer? = null
-        private lateinit var surfaceHolder: SurfaceHolder
         private var isPrepared = false
         private var shouldBePlaying = false
+        private lateinit var surfaceHolder: SurfaceHolder
 
         override fun onSurfaceCreated(holder: SurfaceHolder) {
             super.onSurfaceCreated(holder)
             surfaceHolder = holder
-            playVideo(video_name)
+            playVideo(videoName)
 
-            // Flag to signal this wallpaper is active
-            val flagFile = File(applicationContext.filesDir, "wallpaper_active.flag")
-            flagFile.writeText("1")
+            File(applicationContext.filesDir, "wallpaper_active.flag").writeText("1")
         }
 
         override fun onVisibilityChanged(visible: Boolean) {
             super.onVisibilityChanged(visible)
             shouldBePlaying = visible
-            if (isPrepared) {
+            if (isPrepared && mediaPlayer != null) {
                 try {
                     if (visible) {
                         mediaPlayer?.start()
@@ -79,10 +76,11 @@ class VideoLiveWallpaperService : WallpaperService() {
                         mediaPlayer?.pause()
                     }
                 } catch (e: IllegalStateException) {
-                    Timber.e(e, "MediaPlayer visibility transition error")
+                    Timber.e(e, "MediaPlayer visibility change failed")
                 }
             }
         }
+
 
         override fun onSurfaceDestroyed(holder: SurfaceHolder) {
             super.onSurfaceDestroyed(holder)
@@ -91,7 +89,7 @@ class VideoLiveWallpaperService : WallpaperService() {
 
         fun updateVideo() {
             stopAndReleasePlayer()
-            playVideo(video_name)
+            playVideo(videoName)
         }
 
         private fun playVideo(videoName: String) {
@@ -102,7 +100,16 @@ class VideoLiveWallpaperService : WallpaperService() {
             }
 
             if (!::surfaceHolder.isInitialized || !surfaceHolder.surface.isValid) {
-                Timber.e("Surface is not ready")
+                Timber.e("Surface not valid yet")
+                return
+            }
+
+            val frame = surfaceHolder.surfaceFrame
+            if (frame.width() <= 0 || frame.height() <= 0) {
+                Timber.w("Surface size invalid, retrying in 500ms")
+                Handler(Looper.getMainLooper()).postDelayed({
+                    playVideo(videoName)
+                }, 500)
                 return
             }
 
@@ -118,7 +125,6 @@ class VideoLiveWallpaperService : WallpaperService() {
 
                     setOnPreparedListener {
                         isPrepared = true
-                        Timber.d("MediaPlayer prepared")
                         if (shouldBePlaying) {
                             try {
                                 start()
@@ -130,6 +136,12 @@ class VideoLiveWallpaperService : WallpaperService() {
 
                     setOnErrorListener { _, what, extra ->
                         Timber.e("MediaPlayer error: what=$what, extra=$extra")
+                        stopAndReleasePlayer()
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            if (::surfaceHolder.isInitialized && surfaceHolder.surface.isValid) {
+                                playVideo(videoName)
+                            }
+                        }, 1000)
                         true
                     }
 
@@ -140,20 +152,21 @@ class VideoLiveWallpaperService : WallpaperService() {
             }
         }
 
+
         private fun stopAndReleasePlayer() {
             try {
-                mediaPlayer?.setOnPreparedListener(null)
-                mediaPlayer?.setOnErrorListener(null)
-                mediaPlayer?.let {
+                mediaPlayer?.apply {
+                    setOnPreparedListener(null)
+                    setOnErrorListener(null)
                     try {
-                        it.stop()
+                        if (isPlaying) stop()
                     } catch (e: IllegalStateException) {
-                        Timber.e(e, "stop() failed, wrong state?")
+                        Timber.e(e, "Stop failed (illegal state)")
                     }
-                    it.release()
+                    release()
                 }
             } catch (e: Exception) {
-                Timber.e(e, "release() failed")
+                Timber.e(e, "Exception during MediaPlayer release")
             } finally {
                 mediaPlayer = null
                 isPrepared = false
@@ -162,12 +175,13 @@ class VideoLiveWallpaperService : WallpaperService() {
 
         override fun onDestroy() {
             stopAndReleasePlayer()
-            Timber.i("*** VideoLiveWallpaperService destroyed ***")
-            val flagFile = File(applicationContext.filesDir, "wallpaper_active.flag")
-            if (flagFile.exists()) {
-                flagFile.delete()
-            }
+            File(applicationContext.filesDir, "wallpaper_active.flag").delete()
+            Timber.i("VideoLiveWallpaperService destroyed")
             super.onDestroy()
+        }
+
+        private fun logState(tag: String) {
+            Timber.d("[$tag] isPrepared=$isPrepared, shouldBePlaying=$shouldBePlaying, mediaPlayer=${mediaPlayer != null}, surfaceValid=${surfaceHolder.surface.isValid}")
         }
     }
 
@@ -189,19 +203,15 @@ class VideoLiveWallpaperService : WallpaperService() {
         val intent = Intent(applicationContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
+
         val pendingIntent = PendingIntent.getActivity(
-            applicationContext,
-            0,
-            intent,
+            applicationContext, 0, intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-        }
 
         return NotificationCompat.Builder(applicationContext, "wallpaper_service")
             .setContentTitle("Bunn is here!")
-            .setContentText("Tap to see the video with audio and description")
+            .setContentText("Tap to explore with audio & description")
             .setSmallIcon(R.mipmap.ic_launcher_round)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_MAX)

@@ -49,7 +49,7 @@ fun CustomizedWallpaperService(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 val isActive = isMyLiveWallpaperActive(context)
-                SharedPreferencesHelper.putString(IS_WALLPAPER_SET, isActive.toString())
+                SharedPreferencesHelper.putBoolean(IS_WALLPAPER_SET, isActive)
                 if (isActive) {
                     val intent = Intent(context, MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or

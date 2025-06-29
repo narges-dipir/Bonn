@@ -61,9 +61,9 @@ class WallpaperFirebaseMessagingService: FirebaseMessagingService() {
         // Handle the received message as needed
          val videoUrl = message.data["video_url"] ?: ""
          val videoName = message.data["video_name"] ?: ""
-         val silentUrl = message.data["silentUrl"] ?: ""
+         val silentUrl = message.data["silent_url"] ?: ""
         SharedPreferencesHelper.putString(VIDEO_URL, videoUrl)
-       println("*** Received video URL: $videoUrl")
+     //  println("*** Received video URL: ${message.data}")
         scope.launch {
             videoBackgroundRepository.getVideoFromFireBaseNotification(videoName, videoUrl, silentUrl)
         }

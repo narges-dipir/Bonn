@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.retrofit2.converter.scalars)
     implementation(libs.play.services.ads)
+    implementation(libs.androidx.media3.ui)
 }
 
 kapt {
