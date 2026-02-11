@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="androidApp/src/main/ic_launcher-playstore.png" alt="Bunn App Icon" width="110" />
   <h1>Bunn</h1>
   <p><strong>Live video wallpapers for Android focused on wellness and mindful daily moments.</strong></p>
   <a href="https://play.google.com/store/apps/details?id=de.app.bonn.android">
@@ -15,6 +14,10 @@ It shows wellness-themed video wallpapers and guides users through permission + 
 - Package: `de.app.bonn.android`
 - Platform: Android (`minSdk 26`, `targetSdk 35`)
 - Play Store: https://play.google.com/store/apps/details?id=de.app.bonn.android
+
+<p align="center">
+  <img src="androidApp/src/main/ic_launcher-playstore.png" alt="Bunn App Icon" width="110" />
+</p>
 
 ## Backdrop Preview
 
