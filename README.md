@@ -1,3 +1,5 @@
+Live video wallpapers for Android focused on wellness and mindful daily moments.
+
 <div align="center">
   <h1>Bunn</h1>
   <p><strong>Live video wallpapers for Android focused on wellness and mindful daily moments.</strong></p>
