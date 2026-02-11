@@ -1,11 +1,15 @@
 <div align="center">
   <img src="androidApp/src/main/ic_launcher-playstore.png" alt="Bunn App Icon" width="110" />
   <h1>Bunn</h1>
-  <p><strong>Wellness-themed live wallpaper app for Android</strong></p>
+  <p><strong>Live video wallpapers for Android focused on wellness and mindful daily moments.</strong></p>
   <a href="https://play.google.com/store/apps/details?id=de.app.bonn.android">
     <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" width="240" />
   </a>
 </div>
+
+## Pin-Ready Description
+
+**Bunn is an Android app that delivers wellness-themed live video wallpapers, with easy setup, notifications, and a clean daily experience.**
 
 ## Backdrop Preview
 
