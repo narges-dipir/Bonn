@@ -16,8 +16,8 @@ android {
         applicationId = "de.app.bonn.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10000
-        versionName = "1.0.0.0.0"
+        versionCode = 10001
+        versionName = "1.0.0.0.1"
     }
     buildFeatures {
         compose = true
@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.retrofit2.converter.scalars)
     implementation(libs.play.services.ads)
     implementation(libs.androidx.media3.ui)
+    implementation(libs.moshi.kotlin)
 }
 
 kapt {

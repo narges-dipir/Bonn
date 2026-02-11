@@ -29,6 +29,7 @@ firebase-messaging = "24.1.1"
 room = "2.6.1"
 ksp = "2.1.21-2.0.1"
 hilt-navigation-compose = "1.2.0"
+moshi = "1.15.2"
 
 [libraries]
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
@@ -68,6 +69,7 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
 ffmpeg-kit-full = { group = "com.arthenica", name = "ffmpeg-kit-full", version = "5.1.LTS" }
+moshi-kotlin = { group = "com.squareup.moshi:moshi-kotlin-codegen", name= "moshi" , version.ref = "moshi" }
 
 
 [plugins]
