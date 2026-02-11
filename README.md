@@ -7,9 +7,14 @@
   </a>
 </div>
 
-## Pin-Ready Description
+## Quick Overview
 
-**Bunn is an Android app that delivers wellness-themed live video wallpapers, with easy setup, notifications, and a clean daily experience.**
+**Bunn is an Android live wallpaper app on Google Play.**  
+It shows wellness-themed video wallpapers and guides users through permission + wallpaper setup.
+
+- Package: `de.app.bonn.android`
+- Platform: Android (`minSdk 26`, `targetSdk 35`)
+- Play Store: https://play.google.com/store/apps/details?id=de.app.bonn.android
 
 ## Backdrop Preview
 
