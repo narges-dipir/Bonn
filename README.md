@@ -12,11 +12,12 @@ Live video wallpapers for Android focused on wellness and mindful daily moments.
 
 ## Quick Overview
 
-**Bunn is an Android live wallpaper app on Google Play.**  
-It shows wellness-themed video wallpapers and guides users through permission + wallpaper setup.
+**Bunn is an Android app with a Kotlin Multiplatform shared module and an iOS app target.**  
+Android currently contains the full live wallpaper product experience, and both Android + iOS now consume shared Kotlin networking/domain/state for common bootstrap data.
 
 - Package: `de.app.bonn.android`
-- Platform: Android (`minSdk 26`, `targetSdk 35`)
+- Platforms: Android + iOS (Kotlin Multiplatform shared core)
+- Android: `minSdk 26`, `targetSdk 35`
 - Play Store: https://play.google.com/store/apps/details?id=de.app.bonn.android
 
 <p align="center">
@@ -68,6 +69,15 @@ It shows wellness-themed video wallpapers and guides users through permission + 
 ```bash
 ./gradlew :androidApp:assembleDebug
 ```
+
+## iOS Development (KMP)
+
+1. Open `iosApp/iosApp.xcodeproj` in Xcode.
+2. Build/run the `iosApp` scheme.
+3. Xcode runs `:shared:embedAndSignAppleFrameworkForXcode` automatically to provide the Kotlin framework.
+
+Shared Kotlin code lives in `shared/src/commonMain` and is consumed by both Android and iOS.
+This includes shared API contracts, repository logic (Ktor), use cases, and a shared state ViewModel.
 
 ## Support
 

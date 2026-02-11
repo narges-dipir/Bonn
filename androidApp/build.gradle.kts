@@ -21,6 +21,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -47,7 +48,7 @@ android {
 }
 
 dependencies {
-    // implementation(projects.shared)
+    implementation(projects.shared)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)

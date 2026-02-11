@@ -16,4 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Bonn"
 include(":androidApp")
-//include(":shared")
+include(":shared")
